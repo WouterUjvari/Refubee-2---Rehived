@@ -18,6 +18,7 @@ TagManager:
   - Honeyshard
   - PlayerPunch
   - Water
+  - VirtualCamera
   layers:
   - Default
   - TransparentFX

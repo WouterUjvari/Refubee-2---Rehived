@@ -31,13 +31,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject debugObject7;
     [SerializeField] private GameObject debugObject8;
     [SerializeField] private GameObject debugObject9;
-
+    [HideInInspector] public GameObject vCam;
     
 
 
     private void Awake()
     {
         Instance = this;
+        vCam = GameObject.FindGameObjectWithTag("VirtualCamera");
         //DontDestroyOnLoad(this.gameObject);       
     }
 
@@ -59,6 +60,7 @@ public class GameManager : MonoBehaviour
     {
         GameManager.Instance.playerCurrentHealthPoints = Mathf.Clamp(GameManager.Instance.playerCurrentHealthPoints += amount, 0, GameManager.Instance.playerMaxHealthPoints);
         Instance.playerScript.currentControlType = PlayerScript.ControlType.Platforming;
+        Hud.Instance.fadeAnimator.Play("FlashRed");
         if (playerCurrentHealthPoints ==0)
         {
             Instance.playerScript.DeathSequence();

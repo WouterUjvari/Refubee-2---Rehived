@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Security.Principal;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 using UnityEngine.U2D;
 using UnityEngine.UIElements;
@@ -152,7 +153,6 @@ public class PlayerScript : MonoBehaviour
         HandleStuns();
 
     }
-
     void HandleControlType()
     {
         if (Physics2D.OverlapAreaAll(bodyCollider.bounds.min, bodyCollider.bounds.max, watermask).Length > 0)
@@ -177,7 +177,6 @@ public class PlayerScript : MonoBehaviour
             HandleSwimmingMovement();
         }
     }
-
     void HandlePlatformingMovement()
     {
         flame = false;
@@ -388,7 +387,6 @@ public class PlayerScript : MonoBehaviour
         FaceInput();
         underwatertimer = 0;
     }
-
     private IEnumerator LedgeJump(Collider2D col)
     {
         Physics2D.IgnoreCollision(bodyCollider, col);
@@ -448,13 +446,10 @@ public class PlayerScript : MonoBehaviour
             ChangeAnimation("FALL");
         }
     }
-
     void HandleGroundCheck()
     {
         grounded = Physics2D.OverlapAreaAll(groundCheckCollider.bounds.min, groundCheckCollider.bounds.max, groundmask).Length > 0;
     }
-
-
     IEnumerator Punch()
     {
         punching = true;
@@ -569,7 +564,17 @@ public class PlayerScript : MonoBehaviour
         }
         
         ChangeAnimation("SWIM");
-        Destroy(gameObject, 1);
-        GetComponent<PlayerScript>().enabled = false;
+        Destroy(gameObject, 3);
+        //GetComponent<PlayerScript>().enabled = false;
+        StartCoroutine(Reload());
+    }
+
+    IEnumerator Reload() 
+    {
+
+        yield return new WaitForSeconds(1);
+        Hud.Instance.fadeAnimator.Play("FadeEffect_CircleZoomIn");
+        yield return new WaitForSeconds(0.5f);
+        SceneManager.LoadScene(4);
     }
 }
