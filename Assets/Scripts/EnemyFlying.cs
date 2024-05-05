@@ -666,7 +666,12 @@ public class EnemyFlying : MonoBehaviour
         GameManager.Instance.playerScript.stunned = true;
         GameManager.Instance.playerScript.damageCooldown = 0;
         GameManager.Instance.playerScript.dealdamageCooldown = 0;
+        if (currentPathfindType == PathfindType.Chaseflying)
+        {
+            currentPathfindType = PathfindType.Flying;
+        }
         chaseCooldown = 0;
+        
     }
     private void DealKnockback()
     {
@@ -1238,7 +1243,7 @@ public class EnemyFlying : MonoBehaviour
             float step = moveSpeed * distance * accel * Time.deltaTime;
             transform.position = Vector3.MoveTowards(transform.position, target.position, step);
         }
-        if (detectRange != 0)
+        if (detectRange != 0 && chaseCooldown >= 1)
         {
             float distanceToPlayer = Vector2.Distance(transform.position, GameManager.Instance.playerScript.transform.position);
             if (distanceToPlayer < detectRange)
