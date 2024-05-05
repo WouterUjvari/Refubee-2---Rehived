@@ -30,8 +30,6 @@ public class Enemy : MonoBehaviour
 
     public enum PathfindType { Idle, Linear, Jumper, Chase, Escape, Flying, Chaseflying };
     public PathfindType currentPathfindType;
-    public enum WeakspotLocation { Top, Bottom, Right, Left};
-    public WeakspotLocation currentWeakspotLocation;
     private bool useMovement;
     [Header("Stats")]
     [SerializeField] private int health;
@@ -1044,8 +1042,7 @@ public class Enemy : MonoBehaviour
             Destroy(gameObject, 2);
             DropLoot();
             GetComponent<Enemy>().enabled = false;
-        }
-        
+        }    
     }
 
     void DropLoot()

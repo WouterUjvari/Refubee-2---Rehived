@@ -63,7 +63,7 @@ public class Spike : MonoBehaviour
             if(col.GetComponentInParent<EnemyFlying>() != null)
             {
                 EnemyFlying script2 = col.GetComponentInParent<EnemyFlying>();
-                script2.TakeDamage();
+                script2.TakeDamage(damage);
             }
             
             

@@ -33,7 +33,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4625764741535423898}
-  - {fileID: 449346910072861098}
   - {fileID: 2085191422998672920}
   - {fileID: 3358553974779342582}
   m_Father: {fileID: 0}
@@ -50,31 +49,40 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23ec457faef760742a38c49a81eb51b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 2
-  damage: 1
-  speed: 2
-  chaseSpeed: 3
-  detectionRange: 5
-  knockbackX: 200
-  knockbackY: 400
-  currentPathfindType: 0
-  currentWeakspotLocation: 0
-  route:
-  - {fileID: 8608448046072194469}
-  - {fileID: 1877688975385730565}
-  - {fileID: 5182908008990614801}
-  - {fileID: 7409018024828960325}
+  featureFrontfeature: 2
+  featureBackfeature: 2
+  featureTopfeature: 1
+  featureBottomfeature: 3
+  routeObj: {fileID: 3358553974779342582}
+  route: []
   fly: 1
   currentTarget: {fileID: 0}
+  currentlyStunned: 0
+  playerIsInFrontOfMe: 0
+  playerIsRightOfMe: 0
+  playerIsAboveOfMe: 0
+  playerIsBelowOfMe: 0
+  grounded: 0
+  currentPathfindType: 5
+  health: 1
+  damage: 1
+  moveSpeed: 3
+  knockbackX: 200
+  knockbackY: 400
+  doAgro: 0
+  doEscape: 0
+  detectRange: 5
+  chaseSpeed: 3
+  canJumpChase: 0
+  jumpforce: 0
   jumpCooldown: 0
-  loseWingsOnDamage: 1
-  lostWings: 0
-  direction: 1
-  groundSpeed: 3
-  jumpForce: 500
+  animator: {fileID: 4249218534425823606}
   rb: {fileID: 3778992973124224046}
   center: {fileID: 2085191422998672920}
-  animator: {fileID: 4249218534425823606}
+  col: {fileID: 5325417256951402256}
+  watermask:
+    serializedVersion: 2
+    m_Bits: 16
   disableOnDeath:
   - {fileID: 449346910072861098}
   - {fileID: 3358553974779342582}
@@ -131,7 +139,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 199606126936351084}
-  m_BodyType: 1
+  m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -175,7 +183,7 @@ Transform:
   m_GameObject: {fileID: 1058865029989557866}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.055, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -353,7 +361,8 @@ Transform:
   m_LocalPosition: {x: 0, y: -0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 449346910072861098}
   m_Father: {fileID: 2047539240974601663}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &4843662559691042379
@@ -454,12 +463,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7450163156245101947}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2047539240974601663}
+  m_Father: {fileID: 4625764741535423898}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!61 &5325417256951402256
 BoxCollider2D:

@@ -1,43 +1,74 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+
+using static PlayerScript;
+
 
 public class EnemyFlying : MonoBehaviour
 {
-    [Header("Stats")]
-    [SerializeField] private int health;
-    [SerializeField] private int damage;
-    [SerializeField] private float speed;
-    [SerializeField] private float chaseSpeed;
-    [SerializeField] private float detectionRange;
-    [SerializeField] private float knockbackX;
-    [SerializeField] private float knockbackY;
-    public enum PathfindType {Flying, Chaseflying,GroundFlee};
-    public PathfindType currentPathfindType;
-    public enum WeakspotLocation { Top, Bottom, Right, Left };
-    public WeakspotLocation currentWeakspotLocation;
-
+    public enum Frontfeature { Spikespot, Stunspot, Hurt, Weakspot, Shielded };
+    public Frontfeature featureFrontfeature;
+    public enum Backfeature { Spikespot, Stunspot, Hurt, Weakspot, Shielded };
+    public Backfeature featureBackfeature;
+    public enum Topfeature { Spikespot, Stunspot, Hurt, Weakspot, Shielded };
+    public Topfeature featureTopfeature;
+    public enum Bottomfeature { Spikespot, Stunspot, Hurt, Weakspot, Shielded };
+    public Bottomfeature featureBottomfeature;
     [Header("flying")]
-    [SerializeField] private Transform[] route;   
+    [SerializeField] private Transform routeObj;
+    [SerializeField] private Transform[] route;
     [SerializeField] private bool fly = true;
     [SerializeField] private Transform currentTarget;
     private int index;
     private float accel = 1;
+
+    public bool currentlyStunned;
+    public bool playerIsInFrontOfMe;
+    public bool playerIsRightOfMe;
+    public bool playerIsAboveOfMe;
+    public bool playerIsBelowOfMe;
+    bool leftHitGround;
+    bool RightHitGround;
+    public bool grounded;
+
+    public enum PathfindType { Idle, Linear, Jumper, Chase, Escape, Flying, Chaseflying };
+    public PathfindType currentPathfindType;
+    private bool useMovement;
+    [Header("Stats")]
+    [SerializeField] private int health;
+    public int damage;
+    [SerializeField] private float moveSpeed;
+    public float knockbackX;
+    public float knockbackY;
+    private int direction;
+    [Header("Agro")]
+    [SerializeField] private bool doAgro;
+    [SerializeField] private bool doEscape;
+    [SerializeField] private float detectRange;
+    [SerializeField] private float chaseSpeed;
+    [SerializeField] private bool canJumpChase;
+    [SerializeField] private float jumpforce;
+    [Header("Cooldowns")]
+    private float changeDirectionDelay;
+    private float destinationChoiceCooldown;
+    private float stunCooldown;
+    [HideInInspector] public float jumpCooldown;
     private float killCooldown;
     private float chaseCooldown;
-    public float jumpCooldown;
-    private float changeDirectionCooldown;
-    [Header("Grounded")]
-    [SerializeField] private bool loseWingsOnDamage;
-    [SerializeField] private bool lostWings;
-    [SerializeField] private float direction = -1;
-    [SerializeField] private float groundSpeed;
-    [SerializeField] private float jumpForce;
+    private float destinationX;
+    private float distanceX;
+    private float dealDamageCooldown;
     [Header("Components")]
+    [SerializeField] Animator animator;
     public Rigidbody2D rb;
     [SerializeField] private Transform center;
-    [SerializeField] private Animator animator;
+    [SerializeField] private Collider2D col;
+    [SerializeField] private LayerMask watermask;
+    private bool isDead;
     [SerializeField] private Transform[] disableOnDeath;
+
     [System.Serializable]
     public class Data
     {
@@ -46,283 +77,589 @@ public class EnemyFlying : MonoBehaviour
         public int dropPercentage;
     }
     public Data[] droptable;
-
-
     private void Start()
     {
+        route = routeObj.GetComponentsInChildren<Transform>();
         index = 0;
         currentTarget = route[0];
     }
-
-    private void Update()
-    {
-        killCooldown = Mathf.Clamp(killCooldown += Time.deltaTime, 0, 1);
-        chaseCooldown = Mathf.Clamp(chaseCooldown += Time.deltaTime, 0, 1);
-        jumpCooldown = Mathf.Clamp(jumpCooldown += Time.deltaTime, 0, 1);
-        changeDirectionCooldown = Mathf.Clamp(changeDirectionCooldown += Time.deltaTime, 0, 1);
-    }
-
     private void FixedUpdate()
     {
-        FaceInput();
-        if (!lostWings)
+        if (!currentlyStunned)
         {
-            if (detectionRange != 0)
-            {
-                float distanceToPlayer = Vector2.Distance(transform.position, GameManager.Instance.playerScript.transform.position);
-                if (chaseCooldown >= 1f)
-                {
-                    if (distanceToPlayer < detectionRange)
-                    {
-                        currentPathfindType = PathfindType.Chaseflying;
-                    }
-                    else if (distanceToPlayer > detectionRange + 2)
-                    {
-                        currentPathfindType = PathfindType.Flying;
-                    }
-                }
-                else
-                {
-                    currentPathfindType = PathfindType.Flying;
-                }
-            }
+            Movement();
+            FaceInput();
+            HandlePathfindingType();
         }
+        CheckPlayerLocation();
+        checkGrounded();
+        if (grounded && !currentlyStunned && !isDead)
+        {
+            rb.gravityScale = 0;
+        }
+        else
+        {
+            rb.gravityScale = 3;
+        }
+    }
+    private void Update()
+    {
+        jumpCooldown = Mathf.Clamp(jumpCooldown += Time.deltaTime, 0, 4);
+        chaseCooldown = Mathf.Clamp(chaseCooldown += Time.deltaTime, 0, 2);
+        destinationChoiceCooldown = Mathf.Clamp(destinationChoiceCooldown += Time.deltaTime, 0, 1);
+        killCooldown = Mathf.Clamp(killCooldown += Time.deltaTime, 0, 1);
+        stunCooldown = Mathf.Clamp(stunCooldown += Time.deltaTime, 0, 4);
+        dealDamageCooldown = Mathf.Clamp(dealDamageCooldown += Time.deltaTime, 0, 1);
+
         
-        
-        if(currentPathfindType == PathfindType.Flying)
+
+
+        if (currentPathfindType == PathfindType.Flying)
         {
             Roadmap();
             FollowPath(currentTarget);
         }
-        if(currentPathfindType == PathfindType.Chaseflying)
+        else if (currentPathfindType == PathfindType.Chaseflying)
         {
-            ChasePlayer(GameManager.Instance.playerScript.transform);
+            ChasePlayer(GameManager.Instance.playerScript.antennaCollider.transform);
         }
-        if(currentPathfindType == PathfindType.GroundFlee)
+        else if (currentPathfindType == PathfindType.Escape)
         {
-            GroundFlee();
+            EscapeMovement();
         }
-    }
 
-    void Roadmap()
+    }
+    void OnTriggerEnter2D(Collider2D col)
     {
-        float distanceToTarget = Vector2.Distance(transform.position, currentTarget.position);
-        
-        if (distanceToTarget <= 0.2f)
+        if (!isDead)
         {
-            if (index == route.Length - 1)
+            if (col.gameObject.tag == "PlayerPunch")
             {
-                index = 0;
-            }
-            else
-            {
-                index++;
-            }
-            accel = 0;
-            currentTarget = route[index];
-        }       
-    }
-    void FollowPath(Transform target)
-    {
-        if (fly)
-        {
-            accel = Mathf.Clamp(accel += Time.deltaTime, 0, 1);
-            float distance = Mathf.Clamp(Vector2.Distance(target.position, transform.position), 0, 1);
-            float step = speed * distance * accel * Time.deltaTime;
-            transform.position = Vector3.MoveTowards(transform.position, target.position, step);
-        }
-    }
-
-    void ChasePlayer(Transform target)
-    {
-        if (fly)
-        {
-            accel = Mathf.Clamp(accel += Time.deltaTime, 0, 1);
-            float distance = Mathf.Clamp(Vector2.Distance(target.position, transform.position), 0, 1);
-            float step = chaseSpeed * distance * accel * Time.deltaTime;
-            transform.position = Vector3.MoveTowards(transform.position, target.position, step);
-        }
-    }
-
-    void GroundFlee()
-    {
-        ChangeAnimation("WALK");
-        if (GameManager.Instance.playerScript.transform.position.x > transform.position.x)
-        {
-            direction = -1;
-        }
-        else
-        {
-            direction = 1;
-        }
-
-        
-        
-        if(jumpCooldown > 0.5f && lostWings)
-        {
-            RaycastHit2D[] sideHit = Physics2D.RaycastAll(transform.position, Vector2.right * direction, 0.75f);
-            if (sideHit.Length > 0 && jumpCooldown > 0.5f)
-            {
-                for (int i = 0; i < sideHit.Length; i++)
+                //punch front spike
+                if (featureFrontfeature == Frontfeature.Spikespot && dealDamageCooldown > 0.25f)
                 {
-                    string name = sideHit[i].collider.tag;
-                    if (name == "Ground" || (name == "Enemy" && (sideHit[i].transform != transform)) || name == "Edgemarker")
+                    if (playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
                     {
-                        //Obstacle Detected
-                        Debug.Log("test1");
-                        RaycastHit2D[] groundHit = Physics2D.RaycastAll(transform.position, Vector2.down, 0.75f);
-                        if (groundHit.Length > 0 && jumpCooldown > 0.5f)
+                        DealDamage();
+                        GameManager.Instance.playerScript.stunned = true;
+                        GameManager.Instance.playerScript.damageCooldown = 0;
+                        if (playerIsRightOfMe)
                         {
-                            for (int j = 0; j < groundHit.Length; j++)
+                            GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                        }
+                        else
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                        }
+
+                    }
+                }
+                //punch back spike
+                if (featureBackfeature == Backfeature.Spikespot && dealDamageCooldown > 0.25f)
+                {
+                    if (!playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        DealDamage();
+                        GameManager.Instance.playerScript.stunned = true;
+                        GameManager.Instance.playerScript.damageCooldown = 0;
+                        if (playerIsRightOfMe)
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                        }
+                        else
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                        }
+
+                    }
+                }
+                //punch front stunspot
+                if (featureFrontfeature == Frontfeature.Stunspot)
+                {
+                    if (playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        StartCoroutine(GetStunned());
+                        if (GameManager.Instance.playerScript.currentControlType != ControlType.Sprinting)
+                        {
+                            Debug.Log("123");
+                            if (playerIsRightOfMe)
                             {
-                                string groundname = groundHit[j].collider.tag;
-                                if (groundname == "Ground" || groundname == "Edgemarker")
-                                {
-                                    jumpCooldown = 0;
-                                    rb.velocity = Vector2.zero;
-                                    rb.AddForce(new Vector2(0, jumpForce));
-                                }
+                                GameManager.Instance.playerScript.TakeKnockback(400, 200);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-400, 200);
+                            }
+                        }
+
+                    }
+                }
+                //punch back stunspot
+                if (featureBackfeature == Backfeature.Stunspot)
+                {
+                    if (!playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        StartCoroutine(GetStunned());
+                        if (GameManager.Instance.playerScript.currentControlType != ControlType.Sprinting)
+                        {
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(400, 200);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-400, 200);
                             }
                         }
                     }
                 }
+                //punch front weakspot
+                if (featureFrontfeature == Frontfeature.Weakspot)
+                {
+                    if (playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        TakeDamage(1);
+                        if (health > 0)
+                        {
+                            StartCoroutine(GetStunned());
+                        }
+                        if (GameManager.Instance.playerScript.currentControlType != ControlType.Sprinting)
+                        {
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(400, 200);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-400, 200);
+                            }
+                        }
+                    }
+                }
+                //puch back weakspot
+                if (featureFrontfeature == Frontfeature.Weakspot)
+                {
+                    if (!playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        TakeDamage(1);
+                        if (health > 0)
+                        {
+                            StartCoroutine(GetStunned());
+                        }
+
+                        if (GameManager.Instance.playerScript.currentControlType != ControlType.Sprinting)
+                        {
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(400, 200);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-400, 200);
+                            }
+                        }
+                    }
+                }
+                //punch front roughHurt
+                if (featureFrontfeature == Frontfeature.Hurt)
+                {
+                    if (playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        StartCoroutine(GetStunned());
+                        if (GameManager.Instance.playerScript.currentControlType != ControlType.Sprinting)
+                        {
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(400, 200);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-400, 200);
+                            }
+                        }
+                    }
+                }
+
+                //punch Back roughHurt
+                if (featureBackfeature == Backfeature.Hurt)
+                {
+                    if (!playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        StartCoroutine(GetStunned());
+                        if (GameManager.Instance.playerScript.currentControlType != ControlType.Sprinting)
+                        {
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(400, 200);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-400, 200);
+                            }
+                        }
+                    }
+                }
+
+                //punch front bouncespot
+                if (featureFrontfeature == Frontfeature.Shielded)
+                {
+                    if (playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        if (!GameManager.Instance.playerScript.flame)
+                        {
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(400, 100);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-400, 100);
+                            }
+                        }
+                        else
+                        {
+                            StartCoroutine(GetStunned());
+                        }
+                    }
+                }
+                //punch back bouncespot
+                if (featureBackfeature == Backfeature.Shielded)
+                {
+                    if (!playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        if (!GameManager.Instance.playerScript.flame)
+                        {
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(400, 100);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-400, 100);
+                            }
+                        }
+                        else
+                        {
+                            StartCoroutine(GetStunned());
+                        }
+                    }
+                }
+            }
+            if (col.gameObject.tag == "Player")
+            {
+                //contact front spike
+                if (featureFrontfeature == Frontfeature.Spikespot || featureFrontfeature == Frontfeature.Hurt)
+                {
+                    if (playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe) && dealDamageCooldown > 0.25f)
+                    {
+                        DealDamage();
+                        GameManager.Instance.playerScript.stunned = true;
+                        GameManager.Instance.playerScript.damageCooldown = 0;
+                        if (playerIsRightOfMe)
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                        }
+                        else
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                        }
+
+                    }
+                }
+                //contact back spike
+                if (featureBackfeature == Backfeature.Spikespot || featureBackfeature == Backfeature.Hurt)
+                {
+                    if (!playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe) && dealDamageCooldown > 0.25f)
+                    {
+                        DealDamage();
+                        GameManager.Instance.playerScript.stunned = true;
+                        GameManager.Instance.playerScript.damageCooldown = 0;
+                        if (playerIsRightOfMe)
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                        }
+                        else
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                        }
+
+                    }
+                }
+                //contact above spike
+                if (featureTopfeature == Topfeature.Spikespot || featureTopfeature == Topfeature.Hurt)
+                {
+                    if (playerIsAboveOfMe && dealDamageCooldown > 0.25f)
+                    {
+                        DealDamage();
+
+                        GameManager.Instance.playerScript.stunned = true;
+                        GameManager.Instance.playerScript.damageCooldown = 0;
+                        Debug.Log("1");
+                        if (playerIsRightOfMe)
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                        }
+                        else
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                        }
+
+                    }
+                }
+                //contact bottom spike
+                if (featureBottomfeature == Bottomfeature.Spikespot || featureBottomfeature == Bottomfeature.Hurt)
+                {
+                    if (playerIsBelowOfMe && dealDamageCooldown > 0.25f)
+                    {
+                        DealDamage();
+                        GameManager.Instance.playerScript.stunned = true;
+                        GameManager.Instance.playerScript.damageCooldown = 0;
+                        Debug.Log("2");
+                        if (playerIsRightOfMe)
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                        }
+                        else
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                        }
+
+                    }
+                }
+                //contact top stun
+                if (featureTopfeature == Topfeature.Stunspot)
+                {
+                    if (playerIsAboveOfMe)
+                    {
+                        StartCoroutine(GetStunned());
+                        if (GameManager.Instance.playerScript.jumpInput)
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(0, 600);
+                        }
+                        else
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(0, 400);
+                        }
+
+                    }
+                }
+                //Contact Bottom stun
+                if (featureBottomfeature == Bottomfeature.Stunspot)
+                {
+                    if (playerIsBelowOfMe)
+                    {
+                        StartCoroutine(GetStunned());
+                        if (GameManager.Instance.playerScript.jumpInput)
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(0, 600);
+                        }
+                        else
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(0, 400);
+                        }
+
+                    }
+                }
+                ////////////////
+                //contact front weakspot
+                if (featureFrontfeature == Frontfeature.Weakspot)
+                {
+                    if (playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        TakeDamage(1);
+                        if (health > 0)
+                        {
+                            StartCoroutine(GetStunned());
+                        }
+                        if (!GameManager.Instance.playerScript.flame)
+                        {
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(200, 200);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-200, 200);
+                            }
+                        }
+                    }
+                }
+                //contact back weakspot
+                if (featureBackfeature == Backfeature.Weakspot)
+                {
+                    if (!playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        TakeDamage(1);
+                        if (health > 0)
+                        {
+                            StartCoroutine(GetStunned());
+                        }
+                        if (!GameManager.Instance.playerScript.flame)
+                        {
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(200, 200);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-200, 200);
+                            }
+                        }
+
+                    }
+                }
+                //contact top weakspot
+                if (featureTopfeature == Topfeature.Weakspot)
+                {
+                    if (playerIsAboveOfMe)
+                    {
+                        TakeDamage(1);
+                        if (health > 0)
+                        {
+                            StartCoroutine(GetStunned());
+                        }
+
+                        GameManager.Instance.playerScript.TakeKnockback(0, 400);
+                    }
+                }
+                //contact bottom weakspot
+                if (featureBottomfeature == Bottomfeature.Weakspot && currentlyStunned)
+                {
+                    if (playerIsBelowOfMe)
+                    {
+                        TakeDamage(1);
+                        if (health > 0)
+                        {
+                            StartCoroutine(GetStunned());
+                        }
+
+
+                        if (GameManager.Instance.playerScript.jumpInput)
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(0, 600);
+                        }
+                        else
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(0, 400);
+                        }
+                    }
+                }
+                //Contact front shielded
+                if (featureFrontfeature == Frontfeature.Shielded || featureFrontfeature == Frontfeature.Stunspot)
+                {
+                    if (playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        if (!GameManager.Instance.playerScript.flame)
+                        {
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(400, 100);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-400, 100);
+                            }
+                        }
+                        else if (GameManager.Instance.playerScript.flame)
+                        {
+                            if (featureBackfeature == Backfeature.Stunspot)
+                            {
+                                TakeDamage(1);
+                                if (health > 0)
+                                {
+                                    StartCoroutine(GetStunned());
+                                }
+                            }
+
+                        }
+
+                    }
+                }
+                //Contact back shielded
+                if (featureBackfeature == Backfeature.Shielded || featureBackfeature == Backfeature.Stunspot)
+                {
+                    if (!playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe))
+                    {
+                        if (!GameManager.Instance.playerScript.flame)
+                        {
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(400, 100);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-400, 100);
+                            }
+                        }
+                        else if (GameManager.Instance.playerScript.flame)
+                        {
+
+                            if (featureBackfeature == Backfeature.Stunspot)
+                            {
+                                TakeDamage(1);
+                                if (health > 0)
+                                {
+                                    StartCoroutine(GetStunned());
+                                }
+                            }
+
+                        }
+                    }
+                }
+                //contact top shielded
+                if (featureTopfeature == Topfeature.Shielded)
+                {
+                    if (playerIsAboveOfMe)
+                    {
+                        if (GameManager.Instance.playerScript.jumpInput)
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(0, 600);
+                        }
+                        else
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(0, 400);
+                        }
+                    }
+                }
+                //contact bottom shielded
+                if (featureBottomfeature == Bottomfeature.Shielded)
+                {
+                    if (playerIsBelowOfMe)
+                    {
+                        if (GameManager.Instance.playerScript.jumpInput)
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(0, 600);
+                        }
+                        else
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(0, 400);
+                        }
+                    }
+                }
+
+                if (!currentlyStunned)
+                {
+                    if (playerIsBelowOfMe && dealDamageCooldown > 0.25f)
+                    {
+                        DealDamage();
+                        GameManager.Instance.playerScript.stunned = true;
+                        GameManager.Instance.playerScript.damageCooldown = 0;
+                        rb.velocity = Vector2.zero;
+                        rb.AddForce(new Vector2(0, 600));
+                        if (playerIsRightOfMe)
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(knockbackX / 2, knockbackY / 2);
+                        }
+                        else
+                        {
+                            GameManager.Instance.playerScript.TakeKnockback(-knockbackX / 2, knockbackY / 2);
+                        }
+                    }
+                }
+
             }
         }
-
-        Debug.Log("Walking");
-        float targetSpeed = groundSpeed * direction;
-        float speedDif = targetSpeed - rb.velocity.x;
-        float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? 10 : 10;
-        float movement = Mathf.Pow(Mathf.Abs(speedDif) * accelRate, 1) * Mathf.Sign(speedDif);
-        rb.AddForce(movement * Vector2.right);
     }
-
-    void OnTriggerEnter2D(Collider2D col)
-    {
-        if (col.gameObject.tag == "Player" && killCooldown > 0.5f)
-        {
-            //player takes damage
-            if (currentWeakspotLocation == WeakspotLocation.Top)
-            {
-                if (GameManager.Instance.playerScript.transform.position.y < center.position.y /*higher*/)
-                {
-                    if (GameManager.Instance.playerScript.damageCooldown > 0.2f)
-                    {
-                        if (damage != 0)
-                        {
-                            DealDamage();
-                        }
-                    }
-                    if (GameManager.Instance.playerScript.knockbackCooldown > 0.2f)
-                    {
-                        if (knockbackX != 0 || knockbackY != 0)
-                        {
-
-                            DealKnockback();
-                        }
-                    }
-                }
-                else
-                {
-                    if (GameManager.Instance.playerScript.dealdamageCooldown > 0.2f)
-                    {
-                        TakeDamage();
-                        //GameManager.Instance.playerScript.BounceOffEnemy();
-                    }
-                }
-            }
-            if (currentWeakspotLocation == WeakspotLocation.Bottom)
-            {
-                if (GameManager.Instance.playerScript.transform.position.y > center.position.y /*lower*/)
-                {
-                    if (GameManager.Instance.playerScript.damageCooldown > 0.2f)
-                    {
-                        if (damage != 0)
-                        {
-                            DealDamage();
-                        }
-                    }
-                    if (GameManager.Instance.playerScript.knockbackCooldown > 0.2f)
-                    {
-                        if (knockbackX != 0 || knockbackY != 0)
-                        {
-
-                            DealKnockback();
-                        }
-                    }
-                }
-                else
-                {
-                    if (GameManager.Instance.playerScript.dealdamageCooldown > 0.2f)
-                    {
-                        TakeDamage();
-                        //GameManager.Instance.playerScript.BounceOffEnemy();
-                    }
-                }
-            }
-
-            if (currentWeakspotLocation == WeakspotLocation.Right)
-            {
-                if (GameManager.Instance.playerScript.transform.position.x < center.position.x /*right*/)
-                {
-                    if (GameManager.Instance.playerScript.damageCooldown > 0.2f)
-                    {
-                        if (damage != 0)
-                        {
-                            DealDamage();
-                        }
-                    }
-                    if (GameManager.Instance.playerScript.knockbackCooldown > 0.2f)
-                    {
-                        if (knockbackX != 0 || knockbackY != 0)
-                        {
-
-                            DealKnockback();
-                        }
-                    }
-                }
-                else
-                {
-                    if (GameManager.Instance.playerScript.dealdamageCooldown > 0.2f)
-                    {
-                        TakeDamage();
-                        //GameManager.Instance.playerScript.BounceOffEnemy();
-                    }
-                }
-            }
-
-            if (currentWeakspotLocation == WeakspotLocation.Left)
-            {
-                if (GameManager.Instance.playerScript.transform.position.x > center.position.x /*left*/)
-                {
-                    if (GameManager.Instance.playerScript.damageCooldown > 0.2f)
-                    {
-                        if (damage != 0)
-                        {
-                            DealDamage();
-                        }
-                    }
-                    if (GameManager.Instance.playerScript.knockbackCooldown > 0.2f)
-                    {
-                        if (knockbackX != 0 || knockbackY != 0)
-                        {
-
-                            DealKnockback();
-                        }
-                    }
-                }
-                else
-                {
-                    if (GameManager.Instance.playerScript.dealdamageCooldown > 0.2f)
-                    {
-                        TakeDamage();
-                        //GameManager.Instance.playerScript.BounceOffEnemy();
-                    }
-                }
-            }
-        }
-    }
-
     private void DealDamage()
     {
         GameManager.Instance.TakeHealth(-damage);
@@ -331,7 +668,6 @@ public class EnemyFlying : MonoBehaviour
         GameManager.Instance.playerScript.dealdamageCooldown = 0;
         chaseCooldown = 0;
     }
-
     private void DealKnockback()
     {
         if (GameManager.Instance.playerScript.transform.position.x > center.position.x)
@@ -346,24 +682,370 @@ public class EnemyFlying : MonoBehaviour
         GameManager.Instance.playerScript.stunned = true;
         GameManager.Instance.playerScript.damageCooldown = 0;
         GameManager.Instance.playerScript.dealdamageCooldown = 0;
+
     }
-
-    public void TakeDamage()
+    private void LinearMovement()
     {
-        health--;
+        changeDirectionDelay += Time.deltaTime;
+        if (changeDirectionDelay > 0.5f)
+        {
+            RaycastHit2D[] hit = Physics2D.RaycastAll(center.transform.position, Vector2.right * direction, 0.75f);
+            if (hit.Length > 0)
+            {
+                for (int i = 0; i < hit.Length; i++)
+                {
+                    string name = hit[i].collider.tag;
+                    if (name == "Ground" || (name == "Enemy" && (hit[i].transform != transform)) || name == "Edgemarker")
+                    {
+                        changeDirectionDelay = 0;
+                        rb.velocity = Vector2.zero;
+                        direction = direction * -1;
+                    }
+                }
+            }
+        }
+    }
+    private void JumperMovement()
+    {
+        changeDirectionDelay += Time.deltaTime;
+        if (changeDirectionDelay > 0.5f)
+        {
+            RaycastHit2D[] hit = Physics2D.RaycastAll(center.transform.position, Vector2.right * direction, 0.75f);
+            if (hit.Length > 0)
+            {
+                for (int i = 0; i < hit.Length; i++)
+                {
+                    string name = hit[i].collider.tag;
+                    if (name == "Ground" || (name == "Enemy" && (hit[i].transform != transform)) || name == "Edgemarker")
+                    {
+                        changeDirectionDelay = 0;
+                        rb.velocity = Vector2.zero;
+                        direction = direction * -1;
+                    }
+                }
+            }
+        }
 
+        if (true)
+        {
+
+            if (grounded)
+            {
+                if (jumpCooldown > 0.2f)
+                {
+                    jumpCooldown = 0;
+                    rb.velocity = Vector2.zero;
+                    rb.AddForce(new Vector2(0, jumpforce));
+                    //Debug.Log(this.gameObject.name + " jumped!");
+                }
+            }
+        }
+    }
+    void ChaseMovement()
+    {
+        if (GameManager.Instance.playerScript.transform.position.x > transform.position.x)
+        {
+            direction = 1;
+        }
+        else
+        {
+            direction = -1;
+        }
+        if (jumpCooldown > 1f && canJumpChase)
+        {
+            RaycastHit2D[] hit = Physics2D.RaycastAll(center.transform.position, Vector2.right * direction, 0.75f);
+            if (hit.Length > 0)
+            {
+                for (int i = 0; i < hit.Length; i++)
+                {
+                    string name = hit[i].collider.tag;
+                    if (name == "Ground" || (name == "Enemy" && (hit[i].transform != transform)) || name == "Edgemarker")
+                    {
+                        //jumps
+                        //rb.velocity = Vector2.zero;
+                        //rb.AddForce(new Vector2(0, jumpforce));
+                        //jumpCooldown = 0;
+
+                        if (grounded)
+                        {
+                            //jumps
+                            if (jumpCooldown > 1f)
+                            {
+                                jumpCooldown = 0;
+                                rb.velocity = Vector2.zero;
+                                rb.AddForce(new Vector2(0, jumpforce));
+                                //Debug.Log(this.gameObject.name + " jumped!");
+                            }
+                        }
+                    }
+                }
+            }
+            if (Vector2.Distance(transform.position, GameManager.Instance.playerScript.transform.position) < 2)
+            {
+                if (transform.position.y - GameManager.Instance.playerScript.transform.position.y < -0.5f)
+                {
+                    if (grounded)
+                    {
+                        //jumps
+                        if (jumpCooldown > 1f)
+                        {
+                            jumpCooldown = 0;
+                            rb.velocity = Vector2.zero;
+                            rb.AddForce(new Vector2(0, jumpforce));
+                            //Debug.Log(this.gameObject.name + " jumped!");
+                        }
+                    }
+                }
+            }
+        }
+    }
+    void EscapeMovement()
+    {
+        rb.isKinematic = false;
+        if (GameManager.Instance.playerScript.transform.position.x > transform.position.x)
+        {
+            direction = -1;
+        }
+        else
+        {
+            direction = 1;
+        }
+        if (jumpCooldown > 1f && canJumpChase)
+        {
+            RaycastHit2D[] hit = Physics2D.RaycastAll(center.transform.position, Vector2.right * direction, 0.75f);
+            if (hit.Length > 0)
+            {
+                for (int i = 0; i < hit.Length; i++)
+                {
+                    string name = hit[i].collider.tag;
+                    if (name == "Ground" || (name == "Enemy" && (hit[i].transform != transform)) || name == "Edgemarker")
+                    {
+                        RaycastHit2D[] groundhit = Physics2D.RaycastAll(center.transform.position, Vector2.down, 0.75f);
+                        if (groundhit.Length > 0)
+                        {
+                            for (int j = 0; j < groundhit.Length; j++)
+                            {
+                                string groundname = groundhit[j].collider.tag;
+                                if (name == "Ground" || name == "Enemy" || name == "Edgemarker")
+                                {
+                                    //jumps
+                                    if (jumpCooldown > 1f)
+                                    {
+                                        jumpCooldown = 0;
+                                        rb.velocity = Vector2.zero;
+                                        rb.AddForce(new Vector2(0, jumpforce));
+                                        //Debug.Log(this.gameObject.name + " jumped!");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (Vector2.Distance(transform.position, GameManager.Instance.playerScript.transform.position) < 2)
+            {
+                if (transform.position.y - GameManager.Instance.playerScript.transform.position.y < -0.5f)
+                {
+                    RaycastHit2D[] groundhit = Physics2D.RaycastAll(transform.position, Vector2.down, 0.5f);
+                    if (groundhit.Length > 0)
+                    {
+                        for (int k = 0; k < groundhit.Length; k++)
+                        {
+                            string groundname = groundhit[k].collider.tag;
+                            if (groundname == "Ground" || name == "Enemy" || name == "Water")
+                            {
+                                //jumps
+                                if (jumpCooldown > 0.5f)
+                                {
+                                    jumpCooldown = 0;
+                                    rb.velocity = Vector2.zero;
+                                    rb.AddForce(new Vector2(0, jumpforce));
+                                    //Debug.Log(this.gameObject.name + " jumped!");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    void WaterJump()
+    {
+        if (jumpCooldown >= 4)
+        {
+            if (Mathf.Abs(rb.velocity.x) < 1)
+            {
+                if (Physics2D.OverlapAreaAll(col.bounds.min, col.bounds.max, watermask).Length > 0)
+                {
+                    rb.AddForce(Vector2.up * 300);
+                }
+            }
+
+        }
+    }
+    void HandlePathfindingType()
+    {
+        if (currentPathfindType == PathfindType.Idle)
+        {
+            direction = 0;
+            ChangeAnimation("IDLE");
+        }
+        if (currentPathfindType == PathfindType.Linear)
+        {
+            LinearMovement();
+            if (direction == 0)
+            {
+                direction = -1;
+            }
+            ChangeAnimation("WALK");
+        }
+        if (currentPathfindType == PathfindType.Jumper)
+        {
+            JumperMovement();
+            if (direction == 0)
+            {
+                direction = -1;
+            }
+            ChangeAnimation("WALK");
+        }
+        if (currentPathfindType == PathfindType.Chase)
+        {
+            ChaseMovement();
+            ChangeAnimation("WALK");
+        }
+        if (currentPathfindType == PathfindType.Escape)
+        {
+            EscapeMovement();
+            ChangeAnimation("WALK");
+        }
+    }
+    private void Movement()
+    {
+        WaterJump();
+        if (currentPathfindType == PathfindType.Chase)
+        {
+            float targetSpeed = chaseSpeed * direction;
+            float speedDif = targetSpeed - rb.velocity.x;
+            float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? 5 : 5;
+            float movement = Mathf.Pow(Mathf.Abs(speedDif) * accelRate, 1) * Mathf.Sign(speedDif);
+            rb.AddForce(movement * Vector2.right);
+        }
+        else
+        {
+            float targetSpeed = moveSpeed * direction;
+            float speedDif = targetSpeed - rb.velocity.x;
+            float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? 10 : 10;
+            float movement = Mathf.Pow(Mathf.Abs(speedDif) * accelRate, 1) * Mathf.Sign(speedDif);
+            rb.AddForce(movement * Vector2.right);
+        }
+    }
+    public void TakeDamage(int amount)
+    {
+        GameManager.Instance.playerScript.stunned = false;
+        health -= amount;
         if (health <= 0)
         {
             DeathSequence();
         }
-        else if (loseWingsOnDamage)
+    }
+    IEnumerator GetStunned()
+    {
+        currentPathfindType = PathfindType.Escape;
+        rb.isKinematic = false;
+        dealDamageCooldown = 0;
+        Debug.Log(name + " got stunned!");
+        stunCooldown = 0;
+        rb.sharedMaterial = GameManager.Instance.frictionMaterial;
+        rb.velocity = Vector2.zero;
+        playerIsInFrontOfMe = !playerIsInFrontOfMe;
+
+        CheckPlayerLocation();
+
+        if (!currentlyStunned)
         {
-            lostWings = true;
-            currentPathfindType = PathfindType.GroundFlee;
-            rb.isKinematic = false;
+            if (playerIsInFrontOfMe)
+            {
+                ChangeAnimation("StunL");
+            }
+            else
+            {
+                ChangeAnimation("StunR");
+            }
+        }
+        currentlyStunned = true;
+        rb.velocity = Vector2.zero;
+        if (playerIsRightOfMe)
+        {
+            rb.AddForce(new Vector2(-200, 300));
+        }
+        else
+        {
+            rb.AddForce(new Vector2(200, 300));
+        }
+        yield return new WaitForSeconds(0.5f);
+        ChangeAnimation("STRUGGLE");
+        yield return new WaitForSeconds(4);
+        if (stunCooldown >= 3)
+        {
+            rb.velocity = Vector2.zero;
+            StartCoroutine(GetUnStunned());
         }
     }
-
+    IEnumerator GetUnStunned()
+    {
+        if (playerIsInFrontOfMe)
+        {
+            ChangeAnimation("UnStunL");
+        }
+        else
+        {
+            ChangeAnimation("UnStunR");
+        }
+        rb.velocity = Vector2.zero;
+        rb.AddForce(new Vector2(0, 500));
+        yield return new WaitForSeconds(0.5f);
+        rb.sharedMaterial = GameManager.Instance.noFrictionMaterial;
+        currentlyStunned = false;
+    }
+    void DeathSequence()
+    {
+        rb.gravityScale = 3;
+        if (!isDead)
+        {
+            isDead = true;
+            for (int i = 0; i < disableOnDeath.Length; i++)
+            {
+                disableOnDeath[i].gameObject.SetActive(false);
+            }
+            rb.velocity = Vector2.zero;
+            rb.freezeRotation = false;
+            rb.AddForce(new Vector2(Random.Range(-100, 100), 300));
+            rb.AddTorque(Random.Range(-400, 400));
+            Destroy(gameObject, 2);
+            DropLoot();
+            GetComponent<EnemyFlying>().enabled = false;
+        }
+    }
+    void DropLoot()
+    {
+        if (droptable.Length > 0)
+        {
+            for (int i = 0; i < droptable.Length; i++)
+            {
+                if (droptable[i].dropPercentage >= Random.Range(0, 100))
+                {
+                    for (int j = 0; j <= Random.Range(1, droptable[i].dropAmount) - 1; j++)
+                    {
+                        GameObject drop = Instantiate(droptable[i].dropItem);
+                        Rigidbody2D rb = drop.GetComponent<Rigidbody2D>();
+                        drop.transform.position = center.transform.position;
+                        rb.velocity = Vector2.zero;
+                        rb.AddForce(new Vector2(Random.Range(-200, 200), Random.Range(100, 500)));
+                    }
+                }
+            }
+        }
+    }
     void ChangeAnimation(string animName)
     {
         if (animator != null)
@@ -384,69 +1066,134 @@ public class EnemyFlying : MonoBehaviour
         {
             transform.localScale = new Vector3(-1, 1, 1);
         }
-        if (currentPathfindType == PathfindType.Chaseflying)
+    }
+    void CheckPlayerLocation()
+    {
+        if (transform.position.x > GameManager.Instance.playerScript.transform.position.x)
         {
-            if (GameManager.Instance.playerScript.transform.position.x > transform.position.x)
+            if (transform.localScale.x == 1)
             {
-                direction = 1;
+                playerIsInFrontOfMe = currentlyStunned;
             }
             else
             {
-                direction = -1;
+                playerIsInFrontOfMe = !currentlyStunned;
             }
+            playerIsRightOfMe = false;
         }
-        if (currentPathfindType == PathfindType.Flying)
+        if (transform.position.x < GameManager.Instance.playerScript.transform.position.x)
         {
-            if (currentTarget.transform.position.x > transform.position.x)
+            if (transform.localScale.x == -1)
             {
-                direction = 1;
+                playerIsInFrontOfMe = currentlyStunned;
             }
             else
             {
-                direction = -1;
+                playerIsInFrontOfMe = !currentlyStunned;
             }
-        } 
-    }
-
-
-    void DeathSequence()
-    {
-        for (int i = 0; i < disableOnDeath.Length; i++)
-        {
-            disableOnDeath[i].gameObject.SetActive(false);
+            playerIsRightOfMe = true;
         }
-        ChangeAnimation("DEAD");
-        rb.isKinematic = false;
-        rb.velocity = Vector2.zero;
-        rb.freezeRotation = false;
-        rb.AddForce(new Vector2(Random.Range(-300, 300), 300));
-        rb.AddTorque(Random.Range(-400, 400));
-        Destroy(gameObject, 2);
-        DropLoot();
-        GetComponent<EnemyFlying>().enabled = false;
-    }
+        //////////////////////
+        ///
 
-    void DropLoot()
-    {
-        if (droptable.Length > 0)
+        if (currentlyStunned)
         {
-            for (int i = 0; i < droptable.Length; i++)
+            if (GameManager.Instance.playerScript.transform.position.y < center.position.y - 1.25f)
             {
-                if (droptable[i].dropPercentage >= Random.Range(0, 100))
+                playerIsAboveOfMe = true;
+            }
+            else
+            {
+                playerIsAboveOfMe = false;
+            }
+            if (GameManager.Instance.playerScript.transform.position.y > center.position.y + 0.25f)
+            {
+                playerIsBelowOfMe = true;
+            }
+            else
+            {
+                playerIsBelowOfMe = false;
+            }
+        }
+        else
+        {
+            if (GameManager.Instance.playerScript.transform.position.y > center.position.y + 0.25f)
+            {
+                playerIsAboveOfMe = true;
+            }
+            else
+            {
+                playerIsAboveOfMe = false;
+            }
+            if (GameManager.Instance.playerScript.transform.position.y < center.position.y - 1.25f)
+            {
+                playerIsBelowOfMe = true;
+            }
+            else
+            {
+                playerIsBelowOfMe = false;
+            }
+        }
+
+    }
+    void checkGrounded()
+    {
+
+
+        Vector2 vectL = new Vector2(center.transform.position.x - 0.25f, center.transform.position.y);
+        Vector2 vectR = new Vector2(center.transform.position.x + 0.25f, center.transform.position.y);
+
+        if (true)
+        {
+            RaycastHit2D[] hit = Physics2D.RaycastAll(vectL, Vector2.down, 0.75f);
+            if (hit.Length > 0)
+            {
+                for (int i = 0; i < hit.Length; i++)
                 {
-                    for (int j = 0; j <= droptable[i].dropAmount - 1; j++)
+                    string name = hit[i].collider.tag;
+                    if (name == "Ground")
                     {
-                        GameObject drop = Instantiate(droptable[i].dropItem);
-                        Rigidbody2D rb = drop.GetComponent<Rigidbody2D>();
-                        drop.transform.position = center.transform.position;
-                        rb.velocity = Vector2.zero;
-                        rb.AddForce(new Vector2(Random.Range(-200, 200), Random.Range(100, 500)));
+                        leftHitGround = true;
+                    }
+                    else
+                    {
+                        leftHitGround = false;
                     }
                 }
             }
         }
-    }
 
+
+        if (true)
+        {
+            RaycastHit2D[] hit = Physics2D.RaycastAll(vectR, Vector2.down, 0.75f);
+            if (hit.Length > 0)
+            {
+                for (int i = 0; i < hit.Length; i++)
+                {
+                    string name = hit[i].collider.tag;
+                    if (name == "Ground")
+                    {
+                        RightHitGround = true;
+                    }
+                    else
+                    {
+                        RightHitGround = false;
+                    }
+                }
+            }
+        }
+
+        if (leftHitGround || RightHitGround)
+        {
+            grounded = true;
+        }
+        else
+        {
+            grounded = false;
+        }
+
+    }
     private void OnDrawGizmos()
     {
         if (route.Length != 0)
@@ -460,6 +1207,63 @@ public class EnemyFlying : MonoBehaviour
                 }
             }
             Gizmos.DrawLine(route[route.Length - 1].position, route[0].position);
+        }
+    }
+    void Roadmap()
+    {
+        float distanceToTarget = Vector2.Distance(transform.position, currentTarget.position);
+
+        if (distanceToTarget <= 0.2f)
+        {
+            if (index == route.Length - 1)
+            {
+                index = 0;
+            }
+            else
+            {
+                index++;
+            }
+            accel = 0;
+            currentTarget = route[index];
+        }
+    }
+    void FollowPath(Transform target)
+    {
+        Debug.Log("Currently following route");
+        if (fly)
+        {
+            rb.isKinematic = true;
+            accel = Mathf.Clamp(accel += Time.deltaTime, 0, 1);
+            float distance = Mathf.Clamp(Vector2.Distance(target.position, transform.position), 0, 1);
+            float step = moveSpeed * distance * accel * Time.deltaTime;
+            transform.position = Vector3.MoveTowards(transform.position, target.position, step);
+        }
+        if (detectRange != 0)
+        {
+            float distanceToPlayer = Vector2.Distance(transform.position, GameManager.Instance.playerScript.transform.position);
+            if (distanceToPlayer < detectRange)
+            {
+                currentPathfindType = PathfindType.Chaseflying;
+            }
+        }
+    }
+    void ChasePlayer(Transform target)
+    {
+        if (fly)
+        {
+            rb.isKinematic = true;
+            accel = Mathf.Clamp(accel += Time.deltaTime, 0, 1);
+            float distance = Mathf.Clamp(Vector2.Distance(target.position, transform.position), 0, 1);
+            float step = chaseSpeed * distance * accel * Time.deltaTime;
+            transform.position = Vector3.MoveTowards(transform.position, target.position, step);
+        }
+        if (detectRange != 0)
+        {
+            float distanceToPlayer = Vector2.Distance(transform.position, GameManager.Instance.playerScript.transform.position);
+            if (distanceToPlayer > detectRange)
+            {
+                currentPathfindType = PathfindType.Flying;
+            }
         }
     }
 }
