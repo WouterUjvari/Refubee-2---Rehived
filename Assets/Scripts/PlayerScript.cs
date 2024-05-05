@@ -203,6 +203,7 @@ public class PlayerScript : MonoBehaviour
                     rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, 0);
                     rbPlayer.AddForce(new Vector2(0, 600));
                     grounded = false;
+
                 }
                 if (!standsOnLedge)
                 {
