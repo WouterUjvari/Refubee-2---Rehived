@@ -49,8 +49,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae4e0165ef73b984baee3ce589786e4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  featureFrontfeature: 2
-  featureBackfeature: 2
+  featureFrontfeature: 1
+  featureBackfeature: 1
   featureTopfeature: 4
   featureBottomfeature: 3
   currentlyStunned: 0
@@ -58,6 +58,7 @@ MonoBehaviour:
   playerIsRightOfMe: 0
   playerIsAboveOfMe: 0
   playerIsBelowOfMe: 0
+  grounded: 0
   currentPathfindType: 1
   currentWeakspotLocation: 0
   health: 1
