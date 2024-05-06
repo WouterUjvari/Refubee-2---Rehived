@@ -44,7 +44,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        DebugFunctions();
+        //DebugFunctions();
         if(buzzerActivated)
         {
             Hud.Instance.timer.gameObject.SetActive(true);

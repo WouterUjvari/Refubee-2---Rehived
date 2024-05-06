@@ -101,7 +101,7 @@ public class Enemy : MonoBehaviour
         {
             if (Input.GetKeyDown("f"))
             {
-                StartCoroutine(GetStunned());
+                //StartCoroutine(GetStunned());
             }
         }
         
