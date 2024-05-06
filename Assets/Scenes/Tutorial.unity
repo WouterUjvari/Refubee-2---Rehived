@@ -37785,6 +37785,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 332643355218564918, guid: c2d9baaaee1a7bc4680b72b2a1e3091d, type: 3}
+      propertyPath: m_LookaheadTime
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 793955451412004394, guid: c2d9baaaee1a7bc4680b72b2a1e3091d, type: 3}
       propertyPath: m_BoundingShape2D
       value: 
@@ -46465,6 +46469,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8626973009104426272, guid: dfa72f01a9d084043be647c78b391828, type: 3}
+      propertyPath: sceneIndex
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -46483,6 +46491,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilemapRenderer: {fileID: 2016246810860409742}
+  sprite: {fileID: 0}
 --- !u!1 &3086200485566399944
 GameObject:
   m_ObjectHideFlags: 0

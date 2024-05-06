@@ -575,6 +575,6 @@ public class PlayerScript : MonoBehaviour
         yield return new WaitForSeconds(1);
         Hud.Instance.fadeAnimator.Play("FadeEffect_CircleZoomIn");
         yield return new WaitForSeconds(0.5f);
-        SceneManager.LoadScene(4);
+        SceneManager.LoadScene(0);
     }
 }
