@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -54,6 +55,10 @@ public class GameManager : MonoBehaviour
             Instance.playerScript.killed = true;
             Instance.playerCurrentHealthPoints = 0;
             Instance.playerScript.DeathSequence();
+        }
+        if (Input.GetKeyUp(KeyCode.Escape))
+        {
+            SceneManager.LoadScene(0);
         }
     }
     public void TakeHealth(int amount)
