@@ -36219,7 +36219,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Dangerous Enemy ahead!
+  m_text: Dangerous enemy ahead!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 6764e8128679a2c4ba84a0855c765664, type: 2}
   m_sharedMaterial: {fileID: -7268274695709179731, guid: 6764e8128679a2c4ba84a0855c765664, type: 2}
