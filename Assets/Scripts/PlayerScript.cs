@@ -267,11 +267,11 @@ public class PlayerScript : MonoBehaviour
                         //rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, 0);
                     }
                 }
-                if (rbPlayer.velocity.y > 0.1f)
+                if (rbPlayer.velocity.y > 0.1f && !punching)
                 {
                     ChangeAnimation("JUMP");
                 }
-                else if (rbPlayer.velocity.y < -0.1f)
+                else if (rbPlayer.velocity.y < -0.1f && !punching)
                 {
                     ChangeAnimation("FALL");
                 }
