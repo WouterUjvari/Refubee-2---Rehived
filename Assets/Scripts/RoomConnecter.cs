@@ -8,7 +8,7 @@ public class RoomConnecter : MonoBehaviour
     [SerializeField] Transform teleportLocation;
     [SerializeField] enum RelativeLocation { left, right, bottom, top };
     [SerializeField] RelativeLocation currentRelativeLocation;
-    [SerializeField] float cooldown;
+    public float cooldown;
 
     private void Update()
     {
@@ -17,7 +17,7 @@ public class RoomConnecter : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D col)
     {
-        if(col.gameObject.tag == "Player" && cooldown >= 0.2f)
+        if(col.gameObject.tag == "Player" && cooldown >= 0.5f)
         {          
             StartCoroutine(TeleportRoutine());
         }
@@ -32,44 +32,75 @@ public class RoomConnecter : MonoBehaviour
         
         if (currentRelativeLocation == RelativeLocation.left)
         {
+            GameManager.Instance.camholder.SetActive(false);
+            Vector2 currentVelocity = GameManager.Instance.playerScript.rbPlayer.velocity;
+            //GameManager.Instance.playerScript.rbPlayer.isKinematic = true;
+            //GameManager.Instance.playerScript.rbPlayer.velocity = Vector2.zero;
             Hud.Instance.fadeAnimator.Play("SlideRight");
             yield return new WaitForSeconds(0.25f);
             GameManager.Instance.playerScript.transform.position = new Vector2(vect.x + 1, vect.y);
-            GameManager.Instance.vCam.SetActive(false);
-
+            
+            yield return new WaitForSeconds(0.1f);
             Hud.Instance.fadeAnimator.Play("SlideLeft 0");
-            GameManager.Instance.vCam.SetActive(true);
+            GameManager.Instance.camholder.SetActive(true);
+            yield return new WaitForSeconds(0.5f);
+            GameManager.Instance.playerScript.rbPlayer.isKinematic = false;
+            GameManager.Instance.playerScript.rbPlayer.velocity = currentVelocity;
         }
         if (currentRelativeLocation == RelativeLocation.right)
         {
+            GameManager.Instance.camholder.SetActive(false);
+            Vector2 currentVelocity = GameManager.Instance.playerScript.rbPlayer.velocity;
+            //GameManager.Instance.playerScript.rbPlayer.isKinematic = true;
+            //GameManager.Instance.playerScript.rbPlayer.velocity = Vector2.zero;
             Hud.Instance.fadeAnimator.Play("SlideLeft");
             yield return new WaitForSeconds(0.25f);
             GameManager.Instance.playerScript.transform.position = new Vector2(vect.x + -1, vect.y);
-            GameManager.Instance.vCam.SetActive(false);
 
+            yield return new WaitForSeconds(0.1f);
             Hud.Instance.fadeAnimator.Play("SlideRight 0");
-            GameManager.Instance.vCam.SetActive(true);
+            GameManager.Instance.camholder.SetActive(true);
+            yield return new WaitForSeconds(0.5f);
+
+            GameManager.Instance.playerScript.rbPlayer.isKinematic = false;
+            GameManager.Instance.playerScript.rbPlayer.velocity = currentVelocity;
         }
         if (currentRelativeLocation == RelativeLocation.bottom)
         {
+            GameManager.Instance.camholder.SetActive(false);
+            Vector2 currentVelocity = GameManager.Instance.playerScript.rbPlayer.velocity;
+            GameManager.Instance.playerScript.rbPlayer.isKinematic = true;
+            GameManager.Instance.playerScript.rbPlayer.velocity = Vector2.zero;
             Hud.Instance.fadeAnimator.Play("SlideTop");
             yield return new WaitForSeconds(0.25f);
             GameManager.Instance.playerScript.transform.position = new Vector2(vect.x, vect.y + 1);
-            GameManager.Instance.vCam.SetActive(false);
 
+            yield return new WaitForSeconds(0.1f);
             Hud.Instance.fadeAnimator.Play("SlideBottom 0");
-            GameManager.Instance.vCam.SetActive(true);
+            GameManager.Instance.camholder.SetActive(true);
+            yield return new WaitForSeconds(0.5f);
+            GameManager.Instance.playerScript.rbPlayer.isKinematic = false;
+            GameManager.Instance.playerScript.rbPlayer.velocity = currentVelocity;
         }
         if (currentRelativeLocation == RelativeLocation.top)
         {
+            GameManager.Instance.camholder.SetActive(false);
+            Vector2 currentVelocity = GameManager.Instance.playerScript.rbPlayer.velocity;
+            GameManager.Instance.playerScript.rbPlayer.isKinematic = true;
+            GameManager.Instance.playerScript.rbPlayer.velocity = Vector2.zero;
             Hud.Instance.fadeAnimator.Play("SlideBottom");
             yield return new WaitForSeconds(0.25f);
-            GameManager.Instance.playerScript.transform.position = new Vector2(vect.x + 2, vect.y - 1);
-            GameManager.Instance.vCam.SetActive(false);
+            GameManager.Instance.playerScript.transform.position = new Vector2(vect.x, vect.y - 1);
 
+            yield return new WaitForSeconds(0.1f);
             Hud.Instance.fadeAnimator.Play("SlideTop 0");
-            GameManager.Instance.vCam.SetActive(true);
+            GameManager.Instance.camholder.SetActive(true);
+            yield return new WaitForSeconds(0.5f);
+            GameManager.Instance.playerScript.rbPlayer.isKinematic = false;
+            GameManager.Instance.playerScript.rbPlayer.velocity = currentVelocity;
         }
+
+        GameManager.Instance.playerScript.rbPlayer.mass = 1;
     }
     private void OnDrawGizmos()
     {

@@ -52,7 +52,7 @@ MonoBehaviour:
   coinsGold: 0
   hasShard: 00000000
   playerCurrentHealthPoints: 10
-  playerMaxHealthPoints: 10
+  playerMaxHealthPoints: 20
   hasKeybee: 0
   buzzerActivated: 0
   keybee: {fileID: 0}
@@ -68,6 +68,7 @@ MonoBehaviour:
   debugObject7: {fileID: 7374689895646123259, guid: 131d618b60cc0c34fbeba7e5baabbae1, type: 3}
   debugObject8: {fileID: 7374689895646123259, guid: d46837b9c7ed50e4fb585dbda58a9780, type: 3}
   debugObject9: {fileID: 0}
+  vCam: {fileID: 0}
 --- !u!114 &225861950553619623
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -80,7 +81,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31d302bd5e3babe4ca8708a101d2d912, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelHighscore: 0
+  levelScore: 0
   LevelKeybeeFound: 0
   levelShardOneFound: 0
   levelShardTwoFound: 0

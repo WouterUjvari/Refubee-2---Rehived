@@ -40,6 +40,18 @@ public class Scoreboard : MonoBehaviour
         canvas.SetActive(false);
     }
 
+    private void Update()
+    {
+        if (Input.GetButton("Jump"))
+        {
+            displayDelay = 0.1f;
+        }
+        else
+        {
+            displayDelay = 0.5f;
+        }
+    }
+
     public void StartScoreboard()
     {
         canvas.SetActive(true);
@@ -146,6 +158,7 @@ public class Scoreboard : MonoBehaviour
         yield return new WaitForSeconds(displayDelay);
         SaveManager.instance.SaveGame();
         yield return new WaitForSeconds(displayDelay);
+        LevelManager.Instance.StartLoadLevel(0);
     }
 
 }

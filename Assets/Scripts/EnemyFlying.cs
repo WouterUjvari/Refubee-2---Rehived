@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-
 using static PlayerScript;
 
 
@@ -121,7 +119,7 @@ public class EnemyFlying : MonoBehaviour
         }
         else if (currentPathfindType == PathfindType.Chaseflying)
         {
-            ChasePlayer(GameManager.Instance.playerScript.antennaCollider.transform);
+            ChasePlayer(GameManager.Instance.playerScript.transform);
         }
         else if (currentPathfindType == PathfindType.Escape)
         {
@@ -371,17 +369,25 @@ public class EnemyFlying : MonoBehaviour
                 {
                     if (!playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe) && dealDamageCooldown > 0.25f)
                     {
-                        DealDamage();
-                        GameManager.Instance.playerScript.stunned = true;
-                        GameManager.Instance.playerScript.damageCooldown = 0;
-                        if (playerIsRightOfMe)
+                        if(featureBackfeature == Backfeature.Hurt && GameManager.Instance.playerScript.flame)
                         {
-                            GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                            TakeDamage(1);
                         }
                         else
                         {
-                            GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                            DealDamage();
+                            GameManager.Instance.playerScript.stunned = true;
+                            GameManager.Instance.playerScript.damageCooldown = 0;
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                            }
                         }
+                        
 
                     }
                 }
@@ -390,18 +396,23 @@ public class EnemyFlying : MonoBehaviour
                 {
                     if (playerIsAboveOfMe && dealDamageCooldown > 0.25f)
                     {
-                        DealDamage();
-
-                        GameManager.Instance.playerScript.stunned = true;
-                        GameManager.Instance.playerScript.damageCooldown = 0;
-                        Debug.Log("1");
-                        if (playerIsRightOfMe)
+                        if (featureBackfeature == Backfeature.Hurt && GameManager.Instance.playerScript.flame)
                         {
-                            GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                            TakeDamage(1);
                         }
                         else
                         {
-                            GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                            DealDamage();
+                            GameManager.Instance.playerScript.stunned = true;
+                            GameManager.Instance.playerScript.damageCooldown = 0;
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                            }
                         }
 
                     }
@@ -411,17 +422,23 @@ public class EnemyFlying : MonoBehaviour
                 {
                     if (playerIsBelowOfMe && dealDamageCooldown > 0.25f)
                     {
-                        DealDamage();
-                        GameManager.Instance.playerScript.stunned = true;
-                        GameManager.Instance.playerScript.damageCooldown = 0;
-                        Debug.Log("2");
-                        if (playerIsRightOfMe)
+                        if (featureBackfeature == Backfeature.Hurt && GameManager.Instance.playerScript.flame)
                         {
-                            GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                            TakeDamage(1);
                         }
                         else
                         {
-                            GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                            DealDamage();
+                            GameManager.Instance.playerScript.stunned = true;
+                            GameManager.Instance.playerScript.damageCooldown = 0;
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                            }
                         }
 
                     }
@@ -1220,6 +1237,8 @@ public class EnemyFlying : MonoBehaviour
 
         if (distanceToTarget <= 0.2f)
         {
+
+            
             if (index == route.Length - 1)
             {
                 index = 0;
@@ -1254,6 +1273,7 @@ public class EnemyFlying : MonoBehaviour
     }
     void ChasePlayer(Transform target)
     {
+
         if (fly)
         {
             rb.isKinematic = true;

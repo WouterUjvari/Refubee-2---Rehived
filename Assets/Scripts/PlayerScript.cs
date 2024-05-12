@@ -45,9 +45,6 @@ public class PlayerScript : MonoBehaviour
     [Header("Swimming settings")]
     [SerializeField] private float moveSpeedSwimming;
     [SerializeField] private float maxSpeedSwimming;
-
-
-
     [Header("Components")]
     public Animator animator;
     public Animator fadeAnimator;
@@ -88,13 +85,29 @@ public class PlayerScript : MonoBehaviour
             {
                 timeSinceLastXInput = 0;
             }
+
+            //run
+            if(!stunned && grounded && !punching)
+            {
+                if (Input.GetButton("Fire2"))
+                {
+                    if(currentControlType == ControlType.Platforming)
+                    {
+                        if(MathF.Abs(rbPlayer.velocity.x) >= 3)
+                        {
+                            currentControlType = ControlType.Sprinting;
+                        }
+                        
+                    }
+                }
+            }
         }
 
         if (standsOnLedge) 
         {
             rbPlayer.gravityScale = gravityScalePlatforming;
         }
-        else if(grounded)
+        else if(grounded && currentControlType != ControlType.Swimming)
         {
             rbPlayer.gravityScale = 0;
         }
@@ -234,7 +247,7 @@ public class PlayerScript : MonoBehaviour
                     }
                 }
             }
-            if (standsOnLedge && yInput < 0)
+            if (standsOnLedge && yInput < -0.25f)
             {
                 Debug.Log("Ledgejump");
                 jumpCooldown = 0;
@@ -293,13 +306,13 @@ public class PlayerScript : MonoBehaviour
         {
             ChangeAnimation("SPRINTFASTEST");
             flame = true;
-            speedmult = 2f;
+            speedmult = 1.25f;
         }
         else if (MathF.Abs(rbPlayer.velocity.x) < 100)
         {
             ChangeAnimation("SPRINTMAX");
             flame = true;
-            speedmult = 3f;
+            speedmult = 2f;
         }
         if (currentControlType == ControlType.Sprinting)
         {
@@ -426,6 +439,15 @@ public class PlayerScript : MonoBehaviour
                 }
             }
         }
+        if (Input.GetButton("Jump"))
+        {
+            rbPlayer.mass = 1;
+
+        }
+        else
+        {
+            rbPlayer.mass = 1.75f;
+        }
         
         FaceInput();
         if (grounded)
@@ -457,7 +479,7 @@ public class PlayerScript : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         rbPlayer.velocity = Vector2.zero;
         rbPlayer.AddForce(new Vector2(600 * transform.localScale.x, 200));
-        punchCollider.enabled = true;     
+        punchCollider.enabled = true;
         yield return new WaitForSeconds(0.2f);
         punchCollider.enabled = false;
         yield return new WaitForSeconds(0.1f);

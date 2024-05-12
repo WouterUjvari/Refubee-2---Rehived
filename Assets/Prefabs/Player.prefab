@@ -104,7 +104,7 @@ MonoBehaviour:
   gravityScalePlatforming: 3
   dragPlatforming: 0
   standsOnLedge: 0
-  moveSpeedSwimming: 3
+  moveSpeedSwimming: 4
   maxSpeedSwimming: 1
   animator: {fileID: 7942362946095366266}
   fadeAnimator: {fileID: 0}

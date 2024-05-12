@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Cinemachine;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -32,14 +33,18 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject debugObject7;
     [SerializeField] private GameObject debugObject8;
     [SerializeField] private GameObject debugObject9;
-    [HideInInspector] public GameObject vCam;
-    
+    public GameObject camholder;
+    public GameObject vCam1;
+    public GameObject vCam2;
+
+
 
 
     private void Awake()
     {
         Instance = this;
-        vCam = GameObject.FindGameObjectWithTag("VirtualCamera");
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
         //DontDestroyOnLoad(this.gameObject);       
     }
 
@@ -49,6 +54,8 @@ public class GameManager : MonoBehaviour
         if(buzzerActivated)
         {
             Hud.Instance.timer.gameObject.SetActive(true);
+            vCam1.SetActive(false);
+            vCam2.SetActive(true);
         }
         if(Hud.Instance.timerControllerScript.countdownTimer <=0 && Instance.playerScript.killed == false)
         {

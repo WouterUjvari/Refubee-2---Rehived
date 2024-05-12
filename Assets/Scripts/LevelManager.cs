@@ -12,12 +12,7 @@ public class LevelManager : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
-        //DontDestroyOnLoad(this.gameObject);
-
-        
-        
-        
+        Instance = this;    
     }
     public void StartLoadLevel(int SceneIndex)
     {

@@ -20,7 +20,8 @@ public class SceneDoor : MonoBehaviour
     // Update is called once per frame
 
     void Start()
-    {       
+    {
+        GameObject.FindGameObjectWithTag("Player").gameObject.transform.position = new Vector2(PlayerPrefs.GetInt("SpawnX"), PlayerPrefs.GetInt("SpawnY"));
         int shardscount = 0;
         if (PlayerPrefs.GetInt("level" + sceneIndex + "ShardOneFound") == 1)
         {
@@ -42,7 +43,10 @@ public class SceneDoor : MonoBehaviour
         score.text = "Score: "+ PlayerPrefs.GetInt("level" + sceneIndex + "Highscore") + "";
         shards.text = "Shards: "+ shardscount+ "/4";
         key.text = "Keybee: "+ PlayerPrefs.GetInt("level" + sceneIndex + "KeybeeFound") + "/1";
+        
     }
+    
+    
     void Update()
     {
         if (true)
@@ -75,6 +79,8 @@ public class SceneDoor : MonoBehaviour
     }
     IEnumerator Warp()
     {
+        PlayerPrefs.SetInt("SpawnX", Mathf.RoundToInt(transform.position.x));
+        PlayerPrefs.SetInt("SpawnY", Mathf.RoundToInt(transform.position.y));
         GameManager.Instance.readControls = false;
         GameManager.Instance.playerScript.rbPlayer.isKinematic = true;
         GameManager.Instance.playerScript.rbPlayer.velocity = Vector2.zero;

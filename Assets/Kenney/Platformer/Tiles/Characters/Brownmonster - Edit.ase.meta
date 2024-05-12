@@ -129,7 +129,7 @@ ScriptedImporter:
     rect:
       serializedVersion: 2
       x: 4
-      y: 4
+      y: 62
       width: 28
       height: 20
     spriteID: 8b308a4b529aaf149aab039bd9a32225
@@ -140,7 +140,7 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 4, y: 4}
+    uvTransform: {x: 4, y: 62}
   - name: Brownmonster - Edit_Frame_1
     originalName: 
     pivot: {x: 0.5714286, y: -0.050000004}
@@ -149,7 +149,7 @@ ScriptedImporter:
     rect:
       serializedVersion: 2
       x: 4
-      y: 32
+      y: 90
       width: 28
       height: 20
     spriteID: c0576eee1a323b247b7e4035884b257f
@@ -160,7 +160,47 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 4, y: 32}
+    uvTransform: {x: 4, y: 90}
+  - name: Brownmonster - Edit_Frame_2
+    originalName: 
+    pivot: {x: 0.5714286, y: 0}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 4
+      width: 28
+      height: 21
+    spriteID: 7ddb1e300da2cf84fa2ef289fd579e3e
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 4, y: 4}
+  - name: Brownmonster - Edit_Frame_3
+    originalName: 
+    pivot: {x: 0.5714286, y: -0.047619052}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 33
+      width: 28
+      height: 21
+    spriteID: 3e58a5145bfdbdb44834eda5aa17c74d
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 4, y: 33}
   spriteSheetImportData: []
   asepriteLayers:
   - layerIndex: 0
@@ -186,6 +226,22 @@ ScriptedImporter:
         width: 28
         height: 20
       spriteId: c0576eee1a323b247b7e4035884b257f
+    - name: Brownmonster - Edit_Frame_2
+      frameIndex: 2
+      cellRect:
+        x: 0
+        y: 0
+        width: 28
+        height: 21
+      spriteId: 7ddb1e300da2cf84fa2ef289fd579e3e
+    - name: Brownmonster - Edit_Frame_3
+      frameIndex: 3
+      cellRect:
+        x: 0
+        y: 1
+        width: 28
+        height: 21
+      spriteId: 3e58a5145bfdbdb44834eda5aa17c74d
     linkedCells: []
     parentIndex: -1
   platformSettings:

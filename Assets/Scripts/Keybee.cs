@@ -47,7 +47,7 @@ public class Keybee : MonoBehaviour
         }
         if(PlayerPrefs.GetInt("level" + SceneManager.GetActiveScene().buildIndex + "KeybeeFound") == 1)
         {
-            sprite.color = new Color(1, 1, 1, 0.2f);
+            sprite.color = new Color(1, 1, 1, 0.4f);
         }
 
     }

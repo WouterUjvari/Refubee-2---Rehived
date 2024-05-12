@@ -14,6 +14,8 @@ public class SaveManager : MonoBehaviour
     public int levelShardTwoFound;
     public int levelShardThreeFound;
     public int levelShardFourFound;
+    public int spawnX;
+    public int spawnY;
 
     private void Awake()
     {

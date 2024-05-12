@@ -577,15 +577,7 @@ public class Enemy : MonoBehaviour
                         }
                         else if(GameManager.Instance.playerScript.flame)
                         {
-                            if (featureBackfeature == Backfeature.Stunspot)
-                            {
-                                TakeDamage(1);
-                                if (health > 0)
-                                {
-                                    StartCoroutine(GetStunned());
-                                }
-                            }
-                            
+                            StartCoroutine(GetStunned());
                         }
                         
                     }
@@ -608,16 +600,7 @@ public class Enemy : MonoBehaviour
                         }
                         else if (GameManager.Instance.playerScript.flame)
                         {
-                            
-                            if(featureBackfeature == Backfeature.Stunspot)
-                            {
-                                TakeDamage(1);
-                                if (health > 0)
-                                {
-                                    StartCoroutine(GetStunned());
-                                }
-                            }
-                            
+                            StartCoroutine(GetStunned());
                         }
                     }
                 }
@@ -626,7 +609,20 @@ public class Enemy : MonoBehaviour
                 {
                     if (playerIsAboveOfMe)
                     {
-                        if (GameManager.Instance.playerScript.jumpInput)
+                        if (GameManager.Instance.playerScript.flame)
+                        {
+
+                            if (featureBackfeature == Backfeature.Shielded)
+                            {
+                                TakeDamage(1);
+                                if (health > 0)
+                                {
+                                    StartCoroutine(GetStunned());
+                                }
+                            }
+
+                        }
+                        else if (GameManager.Instance.playerScript.jumpInput)
                         {
                             GameManager.Instance.playerScript.TakeKnockback(0, 600);
                         }

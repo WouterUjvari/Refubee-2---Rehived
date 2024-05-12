@@ -45,9 +45,6 @@ public class WarpPortal : MonoBehaviour
         yield return new WaitForSeconds(1);     
         GameManager.Instance.keybee.transform.position = transform.position;
         Scoreboard.instance.StartScoreboard();
-        yield return new WaitForSeconds(18);
-        Hud.Instance.fadeAnimator.Play("FadeEffect_CircleZoomOut");
-        yield return new WaitForSeconds(1);
-        LevelManager.Instance.StartLoadLevel(sceneIndex);
+        
     }
 }

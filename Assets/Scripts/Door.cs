@@ -17,7 +17,7 @@ public class Door : MonoBehaviour
                 if (Vector2.Distance(transform.position, GameManager.Instance.playerScript.transform.position) < 0.5f && teleportCooldown >= 2)
                 {
                     prompt.gameObject.SetActive(true);
-                    if (Input.GetAxisRaw("Vertical") > 0)
+                    if (Input.GetAxisRaw("Vertical") > 0.25f)
                     {
                         StartCoroutine(Teleport());
 

@@ -51,15 +51,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   featureFrontfeature: 1
   featureBackfeature: 1
-  featureTopfeature: 4
+  featureTopfeature: 1
   featureBottomfeature: 3
   currentlyStunned: 0
   playerIsInFrontOfMe: 0
   playerIsRightOfMe: 0
   playerIsAboveOfMe: 0
   playerIsBelowOfMe: 0
+  grounded: 0
   currentPathfindType: 2
-  currentWeakspotLocation: 0
   health: 1
   damage: 1
   moveSpeed: 2
@@ -151,7 +151,7 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0.6398237}
+  m_Offset: {x: 0.0031061172, y: 0.58598566}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -162,7 +162,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1.1, y: 1.2796474}
+  m_Size: {x: 0.7831836, y: 1.1719713}
   m_EdgeRadius: 0
 --- !u!1 &622112778492633814
 GameObject:
@@ -365,7 +365,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0.58486694}
+  m_Offset: {x: 0.0020705462, y: 0.6273165}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -376,5 +376,5 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.7805064, y: 1.084899}
   m_EdgeRadius: 0

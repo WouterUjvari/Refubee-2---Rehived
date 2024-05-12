@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,14 +7,25 @@ public class Bouncepad : MonoBehaviour
 {
     public float forceX;
     public float forceY;
+    private float cooldown;
+    [SerializeField] private Animator animator;
 
+    private void Update()
+    {
+        cooldown = Mathf.Clamp(cooldown += Time.deltaTime, 0, 1);
+    }
     void OnTriggerEnter2D(Collider2D col)
     {
         if (col.gameObject.tag == "Player")
         {
             if(GameManager.Instance.playerScript.bounceCooldown > 0.2f)
             {
-                ApplyBouncePlayer(forceX, forceY);
+                if (cooldown > 0.5f)
+                {
+                    cooldown = 0;
+                    ApplyBouncePlayer(forceX, forceY);
+                }
+                
             }
         }
         else if (col.gameObject.tag == "Enemy")
@@ -70,7 +82,13 @@ public class Bouncepad : MonoBehaviour
         GameManager.Instance.playerScript.bounceCooldown = 0;
         GameManager.Instance.playerScript.stunned = false;
         GameManager.Instance.playerScript.rbPlayer.velocity = Vector3.zero;
+
         GameManager.Instance.playerScript.rbPlayer.AddForce(new Vector2(x, y));
+
+        if(animator != null)
+        {
+            animator.Play("Bounce");
+        }
     }
 
     void ApplyBounceOther(Rigidbody2D rb ,float x, float y)
