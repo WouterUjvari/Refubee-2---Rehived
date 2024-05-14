@@ -36,7 +36,8 @@ public class GameManager : MonoBehaviour
     public GameObject camholder;
     public GameObject vCam1;
     public GameObject vCam2;
-
+    private float escDuration;
+    private bool freezetime;
 
 
 
@@ -66,7 +67,37 @@ public class GameManager : MonoBehaviour
         }
         if (Input.GetKeyUp(KeyCode.Escape))
         {
-            SceneManager.LoadScene(0);
+            if(escDuration < 0.25f)
+            {
+                freezetime = !freezetime;
+                escDuration = 0;
+                if (freezetime)
+                {
+                    Time.timeScale = 0;
+                    Hud.Instance.paused.SetActive(true);
+
+                }
+                else
+                {
+                    Time.timeScale = 1;
+                    Hud.Instance.paused.SetActive(false);
+                }
+            }
+        }
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            escDuration += Time.deltaTime;
+            if(escDuration > 1 )
+            {
+                escDuration = 0;
+                SceneManager.LoadScene(0);
+                Time.timeScale = 1;
+                
+            }          
+        }
+        else
+        {
+            escDuration = 0;
         }
     }
     public void TakeHealth(int amount)

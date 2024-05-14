@@ -81,7 +81,7 @@ public class Bouncepad : MonoBehaviour
     {
         GameManager.Instance.playerScript.bounceCooldown = 0;
         GameManager.Instance.playerScript.stunned = false;
-        GameManager.Instance.playerScript.rbPlayer.velocity = Vector3.zero;
+        GameManager.Instance.playerScript.rbPlayer.velocity = new Vector2(GameManager.Instance.playerScript.rbPlayer.velocity.x, 0);
 
         GameManager.Instance.playerScript.rbPlayer.AddForce(new Vector2(x, y));
 

@@ -22,6 +22,7 @@ public class Hud : MonoBehaviour
     public TimerController timerControllerScript;
     public Image[] heartComponents;
     public Image[] honeyshards;
+    public GameObject paused;
 
     private void Awake()
     {

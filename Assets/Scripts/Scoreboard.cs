@@ -107,7 +107,7 @@ public class Scoreboard : MonoBehaviour
 
         //keybee
         yield return new WaitForSeconds(displayDelay);
-        if (GameManager.Instance.hasKeybee)
+        if (GameManager.Instance.hasKeybee == true)
         {
             keybee.SetActive(true);
         }

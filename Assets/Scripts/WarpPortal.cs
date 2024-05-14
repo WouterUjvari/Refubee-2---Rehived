@@ -28,10 +28,15 @@ public class WarpPortal : MonoBehaviour
             }
         }
         animator.SetBool("Open", GameManager.Instance.buzzerActivated);
+
     }
 
     IEnumerator Warp()
     {
+        if(!GameManager.Instance.hasKeybee)
+        {
+            Destroy(GameManager.Instance.keybee);
+        }
         SaveManager.instance.SaveGame();
         Hud.Instance.timerControllerScript.enabled = false;
         GameManager.Instance.readControls = false;
@@ -43,7 +48,7 @@ public class WarpPortal : MonoBehaviour
         GameManager.Instance.playerScript.animator.gameObject.SetActive(false);
         Hud.Instance.fadeAnimator.Play("FadeEffect_CircleZoomIn");
         yield return new WaitForSeconds(1);     
-        GameManager.Instance.keybee.transform.position = transform.position;
+        //GameManager.Instance.keybee.transform.position = transform.position;
         Scoreboard.instance.StartScoreboard();
         
     }

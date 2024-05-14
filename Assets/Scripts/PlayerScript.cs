@@ -432,7 +432,7 @@ public class PlayerScript : MonoBehaviour
                         Debug.Log("Dive!");
                         rbPlayer.velocity = Vector2.zero;
 
-                        rbPlayer.AddForce(new Vector2(0, 400));
+                        rbPlayer.AddForce(new Vector2(0, 550));
                         underwatertimer = 0;
                     }
                     
