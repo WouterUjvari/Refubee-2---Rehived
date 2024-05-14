@@ -350,17 +350,40 @@ public class EnemyFlying : MonoBehaviour
                 {
                     if (playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe) && dealDamageCooldown > 0.25f)
                     {
-                        DealDamage();
-                        GameManager.Instance.playerScript.stunned = true;
-                        GameManager.Instance.playerScript.damageCooldown = 0;
-                        if (playerIsRightOfMe)
+                        if (!fly)
                         {
-                            GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                            DealDamage();
+                            GameManager.Instance.playerScript.stunned = true;
+                            GameManager.Instance.playerScript.damageCooldown = 0;
+                            if (playerIsRightOfMe)
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(knockbackX, knockbackY);
+                            }
+                            else
+                            {
+                                GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                            }
                         }
                         else
                         {
-                            GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                            TakeDamage(1);
+                            if (health > 0)
+                            {
+                                StartCoroutine(GetStunned());
+                            }
+                            if (!GameManager.Instance.playerScript.flame)
+                            {
+                                if (playerIsRightOfMe)
+                                {
+                                    GameManager.Instance.playerScript.TakeKnockback(200, 200);
+                                }
+                                else
+                                {
+                                    GameManager.Instance.playerScript.TakeKnockback(-200, 200);
+                                }
+                            }
                         }
+
 
                     }
                 }
@@ -369,11 +392,7 @@ public class EnemyFlying : MonoBehaviour
                 {
                     if (!playerIsInFrontOfMe && (!playerIsBelowOfMe && !playerIsAboveOfMe) && dealDamageCooldown > 0.25f)
                     {
-                        if(featureBackfeature == Backfeature.Hurt && GameManager.Instance.playerScript.flame)
-                        {
-                            TakeDamage(1);
-                        }
-                        else
+                        if (!fly)
                         {
                             DealDamage();
                             GameManager.Instance.playerScript.stunned = true;
@@ -387,7 +406,26 @@ public class EnemyFlying : MonoBehaviour
                                 GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
                             }
                         }
-                        
+                        else
+                        {
+                            TakeDamage(1);
+                            if (health > 0)
+                            {
+                                StartCoroutine(GetStunned());
+                            }
+                            if (!GameManager.Instance.playerScript.flame)
+                            {
+                                if (playerIsRightOfMe)
+                                {
+                                    GameManager.Instance.playerScript.TakeKnockback(200, 200);
+                                }
+                                else
+                                {
+                                    GameManager.Instance.playerScript.TakeKnockback(-200, 200);
+                                }
+                            }
+                        }
+
 
                     }
                 }
@@ -396,11 +434,7 @@ public class EnemyFlying : MonoBehaviour
                 {
                     if (playerIsAboveOfMe && dealDamageCooldown > 0.25f)
                     {
-                        if (featureBackfeature == Backfeature.Hurt && GameManager.Instance.playerScript.flame)
-                        {
-                            TakeDamage(1);
-                        }
-                        else
+                        if (!fly)
                         {
                             DealDamage();
                             GameManager.Instance.playerScript.stunned = true;
@@ -412,6 +446,25 @@ public class EnemyFlying : MonoBehaviour
                             else
                             {
                                 GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                            }
+                        }
+                        else
+                        {
+                            TakeDamage(1);
+                            if (health > 0)
+                            {
+                                StartCoroutine(GetStunned());
+                            }
+                            if (!GameManager.Instance.playerScript.flame)
+                            {
+                                if (playerIsRightOfMe)
+                                {
+                                    GameManager.Instance.playerScript.TakeKnockback(200, 200);
+                                }
+                                else
+                                {
+                                    GameManager.Instance.playerScript.TakeKnockback(-200, 200);
+                                }
                             }
                         }
 
@@ -422,11 +475,7 @@ public class EnemyFlying : MonoBehaviour
                 {
                     if (playerIsBelowOfMe && dealDamageCooldown > 0.25f)
                     {
-                        if (featureBackfeature == Backfeature.Hurt && GameManager.Instance.playerScript.flame)
-                        {
-                            TakeDamage(1);
-                        }
-                        else
+                        if (!fly)
                         {
                             DealDamage();
                             GameManager.Instance.playerScript.stunned = true;
@@ -438,6 +487,25 @@ public class EnemyFlying : MonoBehaviour
                             else
                             {
                                 GameManager.Instance.playerScript.TakeKnockback(-knockbackX, knockbackY);
+                            }
+                        }
+                        else
+                        {
+                            TakeDamage(1);
+                            if (health > 0)
+                            {
+                                StartCoroutine(GetStunned());
+                            }
+                            if (!GameManager.Instance.playerScript.flame)
+                            {
+                                if (playerIsRightOfMe)
+                                {
+                                    GameManager.Instance.playerScript.TakeKnockback(200, 200);
+                                }
+                                else
+                                {
+                                    GameManager.Instance.playerScript.TakeKnockback(-200, 200);
+                                }
                             }
                         }
 

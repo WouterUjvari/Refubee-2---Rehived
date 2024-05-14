@@ -7674,6 +7674,18 @@ PrefabInstance:
       propertyPath: sceneIndex
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 8218743105913243062, guid: 9a16e1a0f3f995f44a7f783db53578c4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8668532946332664700, guid: 9a16e1a0f3f995f44a7f783db53578c4, type: 3}
+      propertyPath: m_text
+      value: Buzzy Plains
+      objectReference: {fileID: 0}
+    - target: {fileID: 8807259302129275780, guid: 9a16e1a0f3f995f44a7f783db53578c4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15451,6 +15463,14 @@ PrefabInstance:
     - target: {fileID: 5892989145331291186, guid: 9a16e1a0f3f995f44a7f783db53578c4, type: 3}
       propertyPath: sceneIndex
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8218743105913243062, guid: 9a16e1a0f3f995f44a7f783db53578c4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8807259302129275780, guid: 9a16e1a0f3f995f44a7f783db53578c4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

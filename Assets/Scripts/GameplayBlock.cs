@@ -134,6 +134,7 @@ public class GameplayBlock : MonoBehaviour
                 {
                     if (col.gameObject.tag == "PlayerPunch" && !held && GameManager.Instance.playerScript.pickupcooldown > 0.5f)
                     {
+                        /*
                         GameManager.Instance.playerScript.heldItem = this.gameObject.transform;
                         held = true;
                         transform.SetParent(GameManager.Instance.playerScript.antennaCollider.transform);
@@ -141,7 +142,7 @@ public class GameplayBlock : MonoBehaviour
                         rb.isKinematic = true;
                         GameManager.Instance.playerScript.pickupcooldown = 0;
                         GameManager.Instance.playerScript.rbPlayer.velocity = Vector2.zero;
-
+                        */
 
                     }
                 }

@@ -192,6 +192,7 @@ public class PlayerScript : MonoBehaviour
     }
     void HandlePlatformingMovement()
     {
+        rbPlayer.mass = 1;
         flame = false;
         // Calculates movementforce
         float targetSpeed = xInput * moveSpeedPlatforming;

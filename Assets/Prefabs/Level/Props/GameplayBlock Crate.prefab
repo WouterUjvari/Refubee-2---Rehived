@@ -134,7 +134,7 @@ MonoBehaviour:
   rb: {fileID: 2035738270128428825}
   droptable:
   - dropItem: {fileID: 7374689895646123259, guid: e4a9ef4778dd270428da1e7a2a5dd707, type: 3}
-    dropAmount: 5
+    dropAmount: 1
     dropPercentage: 50
   - dropItem: {fileID: 7374689895646123259, guid: 131d618b60cc0c34fbeba7e5baabbae1, type: 3}
     dropAmount: 2

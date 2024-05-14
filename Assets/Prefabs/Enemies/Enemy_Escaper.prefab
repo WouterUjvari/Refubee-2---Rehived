@@ -70,7 +70,7 @@ MonoBehaviour:
   detectRange: 5
   chaseSpeed: 3
   canJumpChase: 1
-  jumpforce: 500
+  jumpforce: 450
   jumpCooldown: 0
   animator: {fileID: 4238241882879307754}
   rb: {fileID: 2000429729056775232}
@@ -85,7 +85,7 @@ MonoBehaviour:
   droptable:
   - dropItem: {fileID: 7374689895646123259, guid: d46837b9c7ed50e4fb585dbda58a9780, type: 3}
     dropAmount: 1
-    dropPercentage: 10
+    dropPercentage: 100
   - dropItem: {fileID: 7374689895646123259, guid: 131d618b60cc0c34fbeba7e5baabbae1, type: 3}
     dropAmount: 1
     dropPercentage: 50
