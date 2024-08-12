@@ -32,18 +32,20 @@ public class RoomConnecter : MonoBehaviour
         
         if (currentRelativeLocation == RelativeLocation.left)
         {
+
             GameManager.Instance.camholder.SetActive(false);
             Vector2 currentVelocity = GameManager.Instance.playerScript.rbPlayer.velocity;
-            //GameManager.Instance.playerScript.rbPlayer.isKinematic = true;
-            //GameManager.Instance.playerScript.rbPlayer.velocity = Vector2.zero;
+            GameManager.Instance.playerScript.rbPlayer.isKinematic = true;
+            GameManager.Instance.playerScript.rbPlayer.velocity = Vector2.zero;
+            GameManager.Instance.playerScript.enabled = false;
             Hud.Instance.fadeAnimator.Play("SlideRight");
             yield return new WaitForSeconds(0.25f);
-            GameManager.Instance.playerScript.transform.position = new Vector2(vect.x + 1, vect.y);
-            
+            GameManager.Instance.playerScript.transform.position = new Vector2(vect.x + 2, vect.y -0.5f);        
             yield return new WaitForSeconds(0.1f);
             Hud.Instance.fadeAnimator.Play("SlideLeft 0");
             GameManager.Instance.camholder.SetActive(true);
             yield return new WaitForSeconds(0.5f);
+            GameManager.Instance.playerScript.enabled = true;
             GameManager.Instance.playerScript.rbPlayer.isKinematic = false;
             GameManager.Instance.playerScript.rbPlayer.velocity = currentVelocity;
         }
@@ -51,17 +53,18 @@ public class RoomConnecter : MonoBehaviour
         {
             GameManager.Instance.camholder.SetActive(false);
             Vector2 currentVelocity = GameManager.Instance.playerScript.rbPlayer.velocity;
-            //GameManager.Instance.playerScript.rbPlayer.isKinematic = true;
-            //GameManager.Instance.playerScript.rbPlayer.velocity = Vector2.zero;
+            GameManager.Instance.playerScript.rbPlayer.isKinematic = true;
+            GameManager.Instance.playerScript.rbPlayer.velocity = Vector2.zero;
+            GameManager.Instance.playerScript.enabled = false;
             Hud.Instance.fadeAnimator.Play("SlideLeft");
             yield return new WaitForSeconds(0.25f);
-            GameManager.Instance.playerScript.transform.position = new Vector2(vect.x + -1, vect.y);
+            GameManager.Instance.playerScript.transform.position = new Vector2(vect.x + -2, vect.y -0.5f);
 
             yield return new WaitForSeconds(0.1f);
             Hud.Instance.fadeAnimator.Play("SlideRight 0");
             GameManager.Instance.camholder.SetActive(true);
             yield return new WaitForSeconds(0.5f);
-
+            GameManager.Instance.playerScript.enabled = true;
             GameManager.Instance.playerScript.rbPlayer.isKinematic = false;
             GameManager.Instance.playerScript.rbPlayer.velocity = currentVelocity;
         }
@@ -71,6 +74,7 @@ public class RoomConnecter : MonoBehaviour
             Vector2 currentVelocity = GameManager.Instance.playerScript.rbPlayer.velocity;
             GameManager.Instance.playerScript.rbPlayer.isKinematic = true;
             GameManager.Instance.playerScript.rbPlayer.velocity = Vector2.zero;
+            GameManager.Instance.playerScript.enabled = false;
             Hud.Instance.fadeAnimator.Play("SlideTop");
             yield return new WaitForSeconds(0.25f);
             GameManager.Instance.playerScript.transform.position = new Vector2(vect.x, vect.y + 1);
@@ -79,6 +83,7 @@ public class RoomConnecter : MonoBehaviour
             Hud.Instance.fadeAnimator.Play("SlideBottom 0");
             GameManager.Instance.camholder.SetActive(true);
             yield return new WaitForSeconds(0.5f);
+            GameManager.Instance.playerScript.enabled = true;
             GameManager.Instance.playerScript.rbPlayer.isKinematic = false;
             GameManager.Instance.playerScript.rbPlayer.velocity = currentVelocity;
         }
@@ -88,6 +93,7 @@ public class RoomConnecter : MonoBehaviour
             Vector2 currentVelocity = GameManager.Instance.playerScript.rbPlayer.velocity;
             GameManager.Instance.playerScript.rbPlayer.isKinematic = true;
             GameManager.Instance.playerScript.rbPlayer.velocity = Vector2.zero;
+            GameManager.Instance.playerScript.enabled = false;
             Hud.Instance.fadeAnimator.Play("SlideBottom");
             yield return new WaitForSeconds(0.25f);
             GameManager.Instance.playerScript.transform.position = new Vector2(vect.x, vect.y - 1);
@@ -96,6 +102,7 @@ public class RoomConnecter : MonoBehaviour
             Hud.Instance.fadeAnimator.Play("SlideTop 0");
             GameManager.Instance.camholder.SetActive(true);
             yield return new WaitForSeconds(0.5f);
+            GameManager.Instance.playerScript.enabled = true;
             GameManager.Instance.playerScript.rbPlayer.isKinematic = false;
             GameManager.Instance.playerScript.rbPlayer.velocity = currentVelocity;
         }

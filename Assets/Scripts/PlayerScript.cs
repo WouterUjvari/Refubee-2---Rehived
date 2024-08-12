@@ -11,6 +11,8 @@ using UnityEngine.UIElements;
 
 public class PlayerScript : MonoBehaviour
 {
+    public float measureSpeedY;
+    public float measureSpeedX;
     [SerializeField] private float xInput;
     [SerializeField] private float yInput;
     public bool jumpInput;
@@ -60,6 +62,7 @@ public class PlayerScript : MonoBehaviour
     public Keybee keybee;
     [SerializeField] private bool grounded;
     [SerializeField] private LayerMask groundmask;
+    [SerializeField] private LayerMask ledgemask;
     [SerializeField] private LayerMask watermask;
 
     public enum ControlType { Platforming, Swimming, Sprinting};
@@ -71,7 +74,9 @@ public class PlayerScript : MonoBehaviour
         GameManager.Instance.playerScript = GetComponent<PlayerScript>();
     }
     private void Update()
-    {
+    { 
+        measureSpeedX = rbPlayer.velocity.x;
+        measureSpeedY = rbPlayer.velocity.y;
         if (GameManager.Instance.readControls)
         {
             xInput = Input.GetAxisRaw("Horizontal");
@@ -109,7 +114,8 @@ public class PlayerScript : MonoBehaviour
         }
         else if(grounded && currentControlType != ControlType.Swimming)
         {
-            rbPlayer.gravityScale = 0;
+            //rbPlayer.gravityScale = 0;
+            rbPlayer.gravityScale = gravityScalePlatforming;
         }
         else 
         { 
@@ -208,7 +214,7 @@ public class PlayerScript : MonoBehaviour
         {
             if (jumpInput && jumpCooldown > 0.2f)
             {
-                if (standsOnLedge && yInput >= 0)
+                if (standsOnLedge && yInput >= 0 && measureSpeedY <= 0)
                 {
                     jumpCooldown = 0;
                     grounded = false;
@@ -237,23 +243,24 @@ public class PlayerScript : MonoBehaviour
                     {
                         if (hit[i].collider.gameObject.GetComponent<PlatformEffector2D>() != null)
                         {
-                            standsOnLedge = true;
-                            ledgeCol = hit[i].collider.gameObject.GetComponent<Collider2D>();
+                            //not accurate
+                            //standsOnLedge = true;
+                            //ledgeCol = hit[i].collider.gameObject.GetComponent<Collider2D>();
                         }
                         else
                         {
-                            standsOnLedge = false;
-                            ledgeCol = null;
+                            //standsOnLedge = false;
+                            //ledgeCol = null;
                         }
                     }
                 }
             }
-            if (standsOnLedge && yInput < -0.25f)
+            if (standsOnLedge && yInput < -0.25f && measureSpeedY >= 0)
             {
                 Debug.Log("Ledgejump");
                 jumpCooldown = 0;
                 grounded = false;
-                StartCoroutine(LedgeJump(ledgeCol));
+                StartCoroutine(LedgeJump());
             }
         }
 
@@ -265,7 +272,7 @@ public class PlayerScript : MonoBehaviour
                 {
                     ChangeAnimation("WALK");
                 }
-                else
+                else if(measureSpeedY <= 0)
                 {
                     ChangeAnimation("IDLE");
                 }
@@ -391,7 +398,7 @@ public class PlayerScript : MonoBehaviour
                 Debug.Log("Ledgejump");
                 jumpCooldown = 0;
                 grounded = false;
-                StartCoroutine(LedgeJump(ledgeCol));
+                StartCoroutine(LedgeJump());
             }
         }
 
@@ -401,10 +408,13 @@ public class PlayerScript : MonoBehaviour
         FaceInput();
         underwatertimer = 0;
     }
-    private IEnumerator LedgeJump(Collider2D col)
+    private IEnumerator LedgeJump()
     {
-        Physics2D.IgnoreCollision(bodyCollider, col);
-        yield return new WaitForSeconds(0.5f);       
+        //Collider2D col = Physics2D.OverlapAreaAll(groundCheckCollider.bounds.min, groundCheckCollider.bounds.max, ledgemask);
+        Collider2D col = Physics2D.OverlapArea(groundCheckCollider.bounds.min, groundCheckCollider.bounds.max, ledgemask);
+        Physics2D.IgnoreCollision(bodyCollider, col, true);
+        yield return new WaitForSeconds(0.5f);
+
         Physics2D.IgnoreCollision(bodyCollider, col, false);
         standsOnLedge = false;
     }
@@ -472,6 +482,7 @@ public class PlayerScript : MonoBehaviour
     void HandleGroundCheck()
     {
         grounded = Physics2D.OverlapAreaAll(groundCheckCollider.bounds.min, groundCheckCollider.bounds.max, groundmask).Length > 0;
+        standsOnLedge = Physics2D.OverlapAreaAll(groundCheckCollider.bounds.min, groundCheckCollider.bounds.max, ledgemask).Length > 0;
     }
     IEnumerator Punch()
     {

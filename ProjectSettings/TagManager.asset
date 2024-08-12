@@ -19,6 +19,7 @@ TagManager:
   - PlayerPunch
   - Water
   - VirtualCamera
+  - Ledge
   layers:
   - Default
   - TransparentFX
@@ -40,7 +41,7 @@ TagManager:
   - RunColliderWater
   - Crate
   - Spring
-  - 
+  - Ledge
   - 
   - 
   - 

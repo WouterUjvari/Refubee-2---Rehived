@@ -179,9 +179,9 @@ GameObject:
   - component: {fileID: 8353870521480737164}
   - component: {fileID: 4941541095032574410}
   - component: {fileID: 7756197048210241003}
-  m_Layer: 7
+  m_Layer: 20
   m_Name: Ledge
-  m_TagString: Ground
+  m_TagString: Ledge
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
