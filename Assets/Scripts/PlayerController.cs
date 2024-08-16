@@ -15,13 +15,11 @@ namespace TarodevController
         private Vector2 _frameVelocity;
         private bool _cachedQueryStartInColliders;
 
-        #region Interface
-
         public Vector2 FrameInput => _frameInput.Move;
         public event Action<bool, float> GroundedChanged;
         public event Action Jumped;
-
-        #endregion
+        public PhysicsMaterial2D noFrictionMaterial;
+        public PhysicsMaterial2D fullFrictionMaterial;
 
         private float _time;
 
@@ -56,7 +54,7 @@ namespace TarodevController
                 _frameInput.Move.y = Mathf.Abs(_frameInput.Move.y) < _stats.VerticalDeadZoneThreshold ? 0 : Mathf.Sign(_frameInput.Move.y);
             }
 
-            if (_frameInput.JumpDown)
+            if (_frameInput.JumpHeld)
             {
                 _jumpToConsume = true;
                 _timeJumpWasPressed = _time;
@@ -66,16 +64,12 @@ namespace TarodevController
         private void FixedUpdate()
         {
             CheckCollisions();
-
             HandleJump();
             HandleDirection();
-            HandleGravity();
-            
+            HandleFriction();
             ApplyMovement();
         }
-
-        #region Collisions
-        
+     
         private float _frameLeftGrounded = float.MinValue;
         private bool _grounded;
 
@@ -110,11 +104,6 @@ namespace TarodevController
             Physics2D.queriesStartInColliders = _cachedQueryStartInColliders;
         }
 
-        #endregion
-
-
-        #region Jumping
-
         private bool _jumpToConsume;
         private bool _bufferedJumpUsable;
         private bool _endedJumpEarly;
@@ -141,13 +130,9 @@ namespace TarodevController
             _timeJumpWasPressed = 0;
             _bufferedJumpUsable = false;
             _coyoteUsable = false;
-            _frameVelocity.y = _stats.JumpPower;
+            _rb.velocity = new Vector2(_rb.velocity.x, _stats.JumpPower);
             Jumped?.Invoke();
         }
-
-        #endregion
-
-        #region Horizontal
 
         private void HandleDirection()
         {
@@ -162,26 +147,22 @@ namespace TarodevController
             }
         }
 
-        #endregion
-
-        #region Gravity
-
-        private void HandleGravity()
+        private void ApplyMovement()
         {
-            if (_grounded && _frameVelocity.y <= 0f)
+            _rb.velocity = new Vector2(FrameInput.x * 5, _rb.velocity.y);
+        }
+
+        void HandleFriction()
+        {
+            if(FrameInput.x == 0)
             {
-                _frameVelocity.y = _stats.GroundingForce;
+                _rb.sharedMaterial = fullFrictionMaterial;
             }
             else
             {
-                var inAirGravity = _stats.FallAcceleration;
-                if (_endedJumpEarly && _frameVelocity.y > 0) inAirGravity *= _stats.JumpEndEarlyGravityModifier;
-                _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, -_stats.MaxFallSpeed, inAirGravity * Time.fixedDeltaTime);
+                _rb.sharedMaterial = noFrictionMaterial;
             }
         }
-
-        #endregion
-
         void FaceInput()
         {
             if (FrameInput.x > 0.1f)
@@ -225,13 +206,7 @@ namespace TarodevController
             {
                 _animator.Play(animName);
             }
-        }
-        #region Animations
-
-
-
-        #endregion
-        private void ApplyMovement() => _rb.velocity = _frameVelocity;
+        }   
 
 #if UNITY_EDITOR
         private void OnValidate()

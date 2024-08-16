@@ -24,7 +24,7 @@ MonoBehaviour:
   AirDeceleration: 30
   GroundingForce: -1.5
   GrounderDistance: 0.05
-  JumpPower: 17
+  JumpPower: 12
   MaxFallSpeed: 25
   FallAcceleration: 50
   JumpEndEarlyGravityModifier: 1
