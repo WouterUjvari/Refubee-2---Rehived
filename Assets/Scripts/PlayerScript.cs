@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Security.Principal;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
@@ -574,8 +573,7 @@ public class PlayerScript : MonoBehaviour
             }
            knockbackCooldown = 0;
            rbPlayer.AddForce(new Vector2(amountX, amountY));
-       }
-       
+       }       
     }
 
     public void DeathSequence()

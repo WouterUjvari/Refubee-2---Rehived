@@ -1755,6 +1755,14 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6589168645836588074, guid: 629738dae29baa54387b14d8f9f829f8, type: 3}
+      propertyPath: currentStunDuration
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6589168645836588074, guid: 629738dae29baa54387b14d8f9f829f8, type: 3}
+      propertyPath: currentInputStrength
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6589168645836588074, guid: 629738dae29baa54387b14d8f9f829f8, type: 3}
       propertyPath: fullFrictionMaterial
       value: 
       objectReference: {fileID: 6200000, guid: 621d753cdde245544895a21f87c677d7, type: 2}

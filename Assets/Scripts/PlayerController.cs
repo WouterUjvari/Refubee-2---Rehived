@@ -1,5 +1,8 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 
 namespace TarodevController
@@ -21,6 +24,14 @@ namespace TarodevController
         public PhysicsMaterial2D noFrictionMaterial;
         public PhysicsMaterial2D fullFrictionMaterial;
 
+        //stuns
+        [SerializeField] private bool stunned;
+        [SerializeField] private float currentStunDuration;
+        [SerializeField] private float currentStunDirection;
+        [SerializeField] private float currentInputStrength;
+
+
+
         private float _time;
 
         private void Awake()
@@ -37,6 +48,10 @@ namespace TarodevController
             GatherInput();
             FaceInput();
             HandleAnimation();
+            if (Input.GetKeyDown("f"))
+            {
+                StartCoroutine(Stun());
+            }
         }
 
         private void GatherInput()
@@ -54,7 +69,7 @@ namespace TarodevController
                 _frameInput.Move.y = Mathf.Abs(_frameInput.Move.y) < _stats.VerticalDeadZoneThreshold ? 0 : Mathf.Sign(_frameInput.Move.y);
             }
 
-            if (_frameInput.JumpHeld)
+            if (_frameInput.JumpDown)
             {
                 _jumpToConsume = true;
                 _timeJumpWasPressed = _time;
@@ -65,7 +80,6 @@ namespace TarodevController
         {
             CheckCollisions();
             HandleJump();
-            HandleDirection();
             HandleFriction();
             ApplyMovement();
         }
@@ -134,27 +148,37 @@ namespace TarodevController
             Jumped?.Invoke();
         }
 
-        private void HandleDirection()
+        private void ApplyMovement()
         {
-            if (_frameInput.Move.x == 0)
+            if(FrameInput.x != 0)
             {
-                var deceleration = _grounded ? _stats.GroundDeceleration : _stats.AirDeceleration;
-                _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, 0, deceleration * Time.fixedDeltaTime);
+                _rb.velocity = new Vector2((FrameInput.x * 5 * currentInputStrength) + currentStunDirection, _rb.velocity.y);
             }
             else
             {
-                _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, _frameInput.Move.x * _stats.MaxSpeed, _stats.Acceleration * Time.fixedDeltaTime);
+                _rb.velocity = new Vector2((FrameInput.x * 5 * currentInputStrength) + currentStunDirection, _rb.velocity.y);
             }
+            
         }
 
-        private void ApplyMovement()
+       
+        IEnumerator Stun()
         {
-            _rb.velocity = new Vector2(FrameInput.x * 5, _rb.velocity.y);
+            print("Refubee was stunned!");
+            stunned = true;
+            currentStunDirection = -5 * transform.localScale.x;
+            currentInputStrength = 0;
+            _rb.velocity = Vector2.zero;
+            _rb.AddForce(new Vector2(600 * transform.localScale.x, 200));
+            yield return new WaitForSeconds(1);
+            stunned = false;
+            currentStunDirection = 0;
+            currentInputStrength = 1;
         }
 
         void HandleFriction()
         {
-            if(FrameInput.x == 0)
+            if (FrameInput.x == 0)
             {
                 _rb.sharedMaterial = fullFrictionMaterial;
             }
