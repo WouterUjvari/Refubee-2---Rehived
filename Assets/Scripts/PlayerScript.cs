@@ -220,7 +220,7 @@ public class PlayerScript : MonoBehaviour
         {
             if (jumpInput && jumpCooldown > 0.2f)
             {
-                if (standsOnLedge && yInput >= 0 && measureSpeedY <= 0)
+                if (standsOnLedge && yInput >= 0 && measureSpeedY <= 0.01f)
                 {
                     jumpCooldown = 0;
                     grounded = false;
