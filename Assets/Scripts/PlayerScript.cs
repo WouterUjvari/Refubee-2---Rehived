@@ -8,7 +8,8 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
 using UnityEngine.U2D;
 using UnityEngine.UIElements;
-
+using static PlayerScript;
+[RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
 public class PlayerScript : MonoBehaviour
 {
     public float measureSpeedY;
@@ -37,7 +38,6 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] private float acceleration;
     [SerializeField] private float decceleration;
     [SerializeField] private float velPower;
-    [SerializeField] private float customGravity;
 
     [Header("Platforming settings")]
     [SerializeField] private float moveSpeedPlatforming;
@@ -62,21 +62,41 @@ public class PlayerScript : MonoBehaviour
     public Transform heldItem;
     public float pickupcooldown;
     public Keybee keybee;
-    [SerializeField] private bool grounded;
     [SerializeField] private LayerMask groundmask;
     [SerializeField] private LayerMask ledgemask;
     [SerializeField] private LayerMask watermask;
+    [SerializeField] private LayerMask playerlayer;
 
     public enum ControlType { Platforming, Swimming, Sprinting};
     public ControlType currentControlType;
 
+    /// <summary>
+    /// ////////////////////////////////////////////////////////////////////
+    /// </summary>
+    private CapsuleCollider2D _col;
+    private FrameInput _frameInput;
+    private Vector2 _frameVelocity;
+    private bool _cachedQueryStartInColliders;
+
+    #region Interface
+
+    public event Action<bool, float> GroundedChanged;
+    public event Action Jumped;
+
+    #endregion
+
+    private float _time;
 
     private void Start()
     {
         GameManager.Instance.playerScript = GetComponent<PlayerScript>();
+        _col = GetComponent<CapsuleCollider2D>();
+        _cachedQueryStartInColliders = Physics2D.queriesStartInColliders;
     }
     private void Update()
-    { 
+    {
+        GatherInput();
+        _time += Time.deltaTime;
         measureSpeedX = rbPlayer.velocity.x;
         measureSpeedY = rbPlayer.velocity.y;
         if (GameManager.Instance.readControls)
@@ -94,7 +114,7 @@ public class PlayerScript : MonoBehaviour
             }
 
             //run
-            if(!stunned && grounded && !punching)
+            if(!stunned && _grounded && !punching)
             {
                 if (Input.GetButton("Fire2"))
                 {
@@ -110,7 +130,7 @@ public class PlayerScript : MonoBehaviour
             }
         }
 
-        if (grounded && MathF.Abs(xInput) == 0)
+        if (_grounded && MathF.Abs(xInput) == 0)
         {
             rbPlayer.sharedMaterial = friction;
             bodyCollider.sharedMaterial = friction;
@@ -134,8 +154,8 @@ public class PlayerScript : MonoBehaviour
         dealdamageCooldown = Mathf.Clamp(dealdamageCooldown += Time.deltaTime, 0, 2);
         pickupcooldown = Mathf.Clamp(pickupcooldown += Time.deltaTime, 0, 1);
 
-        //HandleGroundCheck();
-        HandleGroundCheck();
+
+
         
 
         if(Input.GetButtonDown("Fire1"))
@@ -175,8 +195,9 @@ public class PlayerScript : MonoBehaviour
         }
 
         HandleStuns();
-        CustomGravity();
-
+        CheckCollisions();
+        HandleJump();
+        
     }
     void HandleControlType()
     {
@@ -216,30 +237,8 @@ public class PlayerScript : MonoBehaviour
         //rbPlayer.gravityScale = gravityScalePlatforming;
         rbPlayer.drag = dragPlatforming;
 
-        if (grounded && !punching)
+        if (_grounded && !punching)
         {
-            if (jumpInput && jumpCooldown > 0.2f)
-            {
-                if (standsOnLedge && yInput >= 0 && measureSpeedY <= 0.01f)
-                {
-                    jumpCooldown = 0;
-                    grounded = false;
-                    jumpInput = false;
-                    rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, 0);
-                    rbPlayer.AddForce(new Vector2(0, 600));
-                    grounded = false;
-
-                }
-                if (!standsOnLedge)
-                {
-                    jumpCooldown = 0;
-                    grounded = false;
-                    jumpInput = false;
-                    rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, 0);
-                    rbPlayer.AddForce(new Vector2(0, 600));
-                    grounded = false;
-                }
-            }
             if (true)
             {
                 RaycastHit2D[] hit = Physics2D.RaycastAll(transform.position, Vector2.down, 0.25f);
@@ -249,14 +248,14 @@ public class PlayerScript : MonoBehaviour
                     {
                         if (hit[i].collider.gameObject.GetComponent<PlatformEffector2D>() != null)
                         {
-                            //not accurate
-                            //standsOnLedge = true;
-                            //ledgeCol = hit[i].collider.gameObject.GetComponent<Collider2D>();
+                            
+                            standsOnLedge = true;
+                            ledgeCol = hit[i].collider.gameObject.GetComponent<Collider2D>();
                         }
                         else
                         {
-                            //standsOnLedge = false;
-                            //ledgeCol = null;
+                            standsOnLedge = false;
+                            ledgeCol = null;
                         }
                     }
                 }
@@ -265,14 +264,14 @@ public class PlayerScript : MonoBehaviour
             {
                 Debug.Log("Ledgejump");
                 jumpCooldown = 0;
-                grounded = false;
+                _grounded = false;
                 StartCoroutine(LedgeJump());
             }
         }
 
         if (!punching && !stunned)
         {
-            if (grounded)
+            if (_grounded)
             {
                 if (xInput != 0)
                 {
@@ -304,15 +303,16 @@ public class PlayerScript : MonoBehaviour
                 }
             }
         }
-        if (grounded)
+        if (_grounded)
         {
-            rbPlayer.gravityScale = 0;
+            //rbPlayer.gravityScale = 0;
         }
         else
         {
-            rbPlayer.gravityScale = gravityScalePlatforming;
+            //rbPlayer.gravityScale = gravityScalePlatforming;
         }
         FaceInput();
+        HandleGravity();
         underwatertimer = 0;
     }
     void HandleSprintingMovement()
@@ -376,29 +376,8 @@ public class PlayerScript : MonoBehaviour
         //rbPlayer.gravityScale = gravityScalePlatforming;
         rbPlayer.drag = dragPlatforming;
 
-        if (grounded)
+        if (_grounded)
         {
-            if (jumpInput && jumpCooldown > 0.5f)
-            {
-                if (standsOnLedge && yInput >= 0)
-                {
-                    jumpCooldown = 0;
-                    grounded = false;
-                    jumpInput = false;
-                    rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, 0);
-                    rbPlayer.AddForce(new Vector2(0, 600));
-                    grounded = false;
-                }
-                if (!standsOnLedge)
-                {
-                    jumpCooldown = 0;
-                    grounded = false;
-                    jumpInput = false;
-                    rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, 0);
-                    rbPlayer.AddForce(new Vector2(0, 600));
-                    grounded = false;
-                }
-            }
             if (yInput < 0)
             {
                 RaycastHit2D[] hit = Physics2D.RaycastAll(transform.position, Vector2.down, 0.25f);
@@ -423,19 +402,20 @@ public class PlayerScript : MonoBehaviour
             {
                 Debug.Log("Ledgejump");
                 jumpCooldown = 0;
-                grounded = false;
+                _grounded = false;
                 StartCoroutine(LedgeJump());
             }
         }
-        if (grounded)
+        if (_grounded)
         {
-            rbPlayer.gravityScale = 0;
+            //rbPlayer.gravityScale = 0;
         }
         else
         {
-            rbPlayer.gravityScale = gravityScalePlatforming;
+            //rbPlayer.gravityScale = gravityScalePlatforming;
         }
         FaceInput();
+        HandleGravity();
         underwatertimer = 0;
     }
     private IEnumerator LedgeJump()
@@ -450,6 +430,10 @@ public class PlayerScript : MonoBehaviour
     }
     void HandleSwimmingMovement()
     {
+        _coyoteUsable = false;
+        _jumpToConsume = false;
+        _bufferedJumpUsable = false;
+
         stunned = false;
         flame = false;
         underwatertimer += Time.deltaTime;
@@ -462,7 +446,7 @@ public class PlayerScript : MonoBehaviour
 
         if (underwatertimer > 0.2f)
         {
-            if (Input.GetButton("Jump"))
+            if (_frameInput.JumpHeld)
             {
                 if (Physics2D.OverlapAreaAll(antennaCollider.bounds.min, antennaCollider.bounds.max, watermask).Length == 0)
                 {
@@ -472,7 +456,7 @@ public class PlayerScript : MonoBehaviour
                         Debug.Log("Dive!");
                         rbPlayer.velocity = Vector2.zero;
 
-                        rbPlayer.AddForce(new Vector2(0, 550));
+                        rbPlayer.AddForce(new Vector2(0, 700));
                         underwatertimer = 0;
                     }
                     
@@ -480,18 +464,19 @@ public class PlayerScript : MonoBehaviour
                 }
             }
         }
-        if (Input.GetButton("Jump"))
+        if (_frameInput.JumpHeld)
         {
             rbPlayer.mass = 1f;
 
         }
         else
         {
-            rbPlayer.mass = 1.75f;
+            rbPlayer.mass = 2f;
         }
+        rbPlayer.drag = 2;
         
         FaceInput();
-        if (grounded)
+        if (_grounded)
         {
             if (xInput == 0)
             {
@@ -509,11 +494,7 @@ public class PlayerScript : MonoBehaviour
             ChangeAnimation("FALL");
         }
     }
-    void HandleGroundCheck()
-    {
-        grounded = Physics2D.OverlapAreaAll(groundCheckCollider.bounds.min, groundCheckCollider.bounds.max, groundmask).Length > 0;
-        standsOnLedge = Physics2D.OverlapAreaAll(groundCheckCollider.bounds.min, groundCheckCollider.bounds.max, ledgemask).Length > 0;
-    }
+    
     IEnumerator Punch()
     {
         punching = true;
@@ -545,7 +526,7 @@ public class PlayerScript : MonoBehaviour
 
     void HandleStuns()
     {      
-        if (grounded && damageCooldown > 0.2f)
+        if (_grounded && damageCooldown > 0.2f)
         {
             stunned = false;
         }
@@ -556,20 +537,6 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
-    void CustomGravity()
-    {
-        if (!grounded)
-        {
-            if(rbPlayer.velocity.y <= 0)
-            {
-                //rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, rbPlayer.velocity.y - customGravity);
-            }
-            if(rbPlayer.velocity.y < -20)
-            {
-                rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, -20);
-            }
-        }
-    }
     IEnumerator UnStunBackup()
     {
         yield return new WaitForSeconds(2);
@@ -619,7 +586,7 @@ public class PlayerScript : MonoBehaviour
     public void DeathSequence()
     {
         float chance = UnityEngine.Random.Range(0, 1);
-        grounded = false;
+        _grounded = false;
         rbPlayer.gravityScale = gravityScalePlatforming;
         bodyCollider.enabled = false;
         rbPlayer.velocity = Vector2.zero;
@@ -648,5 +615,115 @@ public class PlayerScript : MonoBehaviour
         Hud.Instance.fadeAnimator.Play("FadeEffect_CircleZoomIn");
         yield return new WaitForSeconds(0.5f);
         SceneManager.LoadScene(0);
+    }
+
+    //new stuff
+    /// <summary>
+    /// /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// </summary>
+    void GatherInput()
+    {
+        _frameInput = new FrameInput
+        {
+            JumpDown = Input.GetButton("Jump") || Input.GetKeyDown(KeyCode.C),
+            JumpHeld = Input.GetButton("Jump") || Input.GetKey(KeyCode.C),
+            Move = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"))
+        };
+
+        if (_frameInput.JumpDown)
+        {
+            _jumpToConsume = true;
+            _timeJumpWasPressed = _time;
+        }
+    }
+
+    private float _frameLeftGrounded = float.MinValue;
+    private bool _grounded;
+    private void CheckCollisions()
+    {
+        Physics2D.queriesStartInColliders = false;
+
+        // Ground and Ceiling
+        bool groundHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.down, 0.1f, groundmask);
+        bool ceilingHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.up, 0.1f, groundmask);
+
+        // Hit a Ceiling
+        if (ceilingHit) _frameVelocity.y = Mathf.Min(0, _frameVelocity.y);
+
+        // Landed on the Ground
+        if (!_grounded && groundHit && measureSpeedY <= 0.01f)
+        {
+            _grounded = true;
+            _coyoteUsable = true;
+            _bufferedJumpUsable = true;
+            _endedJumpEarly = false;
+            GroundedChanged?.Invoke(true, Mathf.Abs(_frameVelocity.y));
+        }
+        // Left the Ground
+        else if (_grounded && !groundHit)
+        {
+            _grounded = false;
+            _frameLeftGrounded = _time;
+            GroundedChanged?.Invoke(false, 0);
+        }
+
+        Physics2D.queriesStartInColliders = _cachedQueryStartInColliders;
+    }
+    private bool _jumpToConsume;
+    private bool _bufferedJumpUsable;
+    private bool _endedJumpEarly;
+    private bool _coyoteUsable;
+    private float _timeJumpWasPressed;
+
+    private bool HasBufferedJump => _bufferedJumpUsable && _time < _timeJumpWasPressed + 0.2f;
+    private bool CanUseCoyote => _coyoteUsable && !_grounded && _time < _frameLeftGrounded + 0.15f;
+
+    private void HandleJump()
+    {
+        if (!_endedJumpEarly && !_grounded && !_frameInput.JumpHeld && rbPlayer.velocity.y > 0) _endedJumpEarly = true;
+
+        if (!_jumpToConsume && !HasBufferedJump) return;
+
+        if (_grounded || CanUseCoyote) ExecuteJump();
+
+        _jumpToConsume = false;
+    }
+    private void ExecuteJump()
+    {
+        Debug.Log("JUMP NOW!");
+        _endedJumpEarly = false;
+        _timeJumpWasPressed = 0;
+        _bufferedJumpUsable = false;
+        _coyoteUsable = false;
+        rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, 0);
+        rbPlayer.AddForce(new Vector2(0, 600));
+        Jumped?.Invoke();
+    }
+    private void HandleGravity()
+    {
+        if (_grounded && _frameVelocity.y <= 0f)
+        {
+            _frameVelocity.y = -1.5f;
+        }
+        else
+        {
+            var inAirGravity = 110;
+            if (_endedJumpEarly && _frameVelocity.y > 0) inAirGravity *= 3;
+            _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, 40, inAirGravity * Time.fixedDeltaTime);
+        }
+    }
+    public struct FrameInput
+    {
+        public bool JumpDown;
+        public bool JumpHeld;
+        public Vector2 Move;
+    }
+
+    public interface IPlayerController
+    {
+        public event Action<bool, float> GroundedChanged;
+
+        public event Action Jumped;
+        public Vector2 FrameInput { get; }
     }
 }

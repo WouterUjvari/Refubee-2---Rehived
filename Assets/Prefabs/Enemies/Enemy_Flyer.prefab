@@ -71,7 +71,7 @@ MonoBehaviour:
   knockbackY: 400
   doAgro: 0
   doEscape: 0
-  detectRange: 5
+  detectRange: 2
   chaseSpeed: 3
   canJumpChase: 0
   jumpforce: 0

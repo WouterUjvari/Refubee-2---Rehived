@@ -33063,7 +33063,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8860988307334351675, guid: 6104cb29a1fe73c449e8ba5ebb2448b0, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.6799994
+      value: 5.1799994
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -34376,25 +34376,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
-    - target: {fileID: 2719926402453789718, guid: 629738dae29baa54387b14d8f9f829f8, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3557065537132131284, guid: 629738dae29baa54387b14d8f9f829f8, type: 3}
-      propertyPath: ledgemask.m_Bits
-      value: 1048576
-      objectReference: {fileID: 0}
-    - target: {fileID: 3557065537132131284, guid: 629738dae29baa54387b14d8f9f829f8, type: 3}
-      propertyPath: groundmask.m_Bits
-      value: 1376384
-      objectReference: {fileID: 0}
     - target: {fileID: 3925796291451174775, guid: 629738dae29baa54387b14d8f9f829f8, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.52000046
       objectReference: {fileID: 0}
     - target: {fileID: 3925796291451174775, guid: 629738dae29baa54387b14d8f9f829f8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.879999
+      value: 5.379999
       objectReference: {fileID: 0}
     - target: {fileID: 3925796291451174775, guid: 629738dae29baa54387b14d8f9f829f8, type: 3}
       propertyPath: m_LocalPosition.z
@@ -41925,7 +41913,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7961539240750996211, guid: 4bebe9ab323047f4faa39f86088c18d5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.87999
+      value: 5.3799996
       objectReference: {fileID: 0}
     - target: {fileID: 7961539240750996211, guid: 4bebe9ab323047f4faa39f86088c18d5, type: 3}
       propertyPath: m_LocalPosition.z

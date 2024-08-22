@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2966944015635529005}
   - component: {fileID: 6647557549299557775}
   - component: {fileID: 2380602919637245159}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: PipeDown
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -107,7 +107,7 @@ GameObject:
   - component: {fileID: 8031466317692429163}
   - component: {fileID: 5732677286672040076}
   - component: {fileID: 5134074014806724522}
-  m_Layer: 7
+  m_Layer: 20
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
