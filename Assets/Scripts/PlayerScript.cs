@@ -28,6 +28,7 @@ public class PlayerScript : MonoBehaviour
     public bool flame;
     public bool slope;
     private float speedmult;
+    private float accelmult;
 
     private float underwatertimer;
     //public int healthPoints, maxHealthPoints;
@@ -36,6 +37,7 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] private float acceleration;
     [SerializeField] private float decceleration;
     [SerializeField] private float velPower;
+    [SerializeField] private float customGravity;
 
     [Header("Platforming settings")]
     [SerializeField] private float moveSpeedPlatforming;
@@ -108,17 +110,27 @@ public class PlayerScript : MonoBehaviour
             }
         }
 
-        if (standsOnLedge) 
+        if (grounded && MathF.Abs(xInput) == 0)
         {
-            rbPlayer.gravityScale = gravityScalePlatforming;
+            rbPlayer.sharedMaterial = friction;
+            bodyCollider.sharedMaterial = friction;
         }
-        else if(grounded && currentControlType != ControlType.Swimming)
+        else
         {
-            //rbPlayer.gravityScale = 0;
-            rbPlayer.gravityScale = gravityScalePlatforming;
+            rbPlayer.sharedMaterial = nofriction;
+            bodyCollider.sharedMaterial = nofriction;
+        }
+        {
+            //rbPlayer.gravityScale = gravityScalePlatforming;
+        }
+        
+
+        if(grounded)
+        {
+            rbPlayer.gravityScale = 0;
         }
         else 
-        { 
+        {          
             rbPlayer.gravityScale = gravityScalePlatforming;
         }
 
@@ -170,6 +182,7 @@ public class PlayerScript : MonoBehaviour
         }
 
         HandleStuns();
+        CustomGravity();
 
     }
     void HandleControlType()
@@ -203,7 +216,7 @@ public class PlayerScript : MonoBehaviour
         // Calculates movementforce
         float targetSpeed = xInput * moveSpeedPlatforming;
         float speedDif = targetSpeed - rbPlayer.velocity.x;
-        float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? acceleration : decceleration;
+        float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? (acceleration * 10) : (decceleration * 2);
         float movement = Mathf.Pow(Mathf.Abs(speedDif) * accelRate, velPower) * Mathf.Sign(speedDif);
         rbPlayer.AddForce(movement * Vector2.right);
 
@@ -272,7 +285,7 @@ public class PlayerScript : MonoBehaviour
                 {
                     ChangeAnimation("WALK");
                 }
-                else if(measureSpeedY <= 0)
+                else if(xInput == 0)
                 {
                     ChangeAnimation("IDLE");
                 }
@@ -304,27 +317,40 @@ public class PlayerScript : MonoBehaviour
     }
     void HandleSprintingMovement()
     {
-        if (MathF.Abs(rbPlayer.velocity.x) < 10)
+        rbPlayer.sharedMaterial = nofriction;
+        bodyCollider.sharedMaterial = nofriction;
+        if (MathF.Abs(rbPlayer.velocity.x) < 5)
+        {
+            ChangeAnimation("SPRINT");
+            flame = false;
+            speedmult = 0.75f;
+            accelmult = 0.75f;
+        }
+        else if (MathF.Abs(rbPlayer.velocity.x) < 10)
         {
             ChangeAnimation("SPRINTFASTER");
             flame = false;
             speedmult = 1f;
+            accelmult = 1;
         }
         else if (MathF.Abs(rbPlayer.velocity.x) < 25)
         {
             ChangeAnimation("SPRINTFASTEST");
             flame = true;
             speedmult = 1.25f;
+
+            accelmult = 2;
         }
         else if (MathF.Abs(rbPlayer.velocity.x) < 100)
         {
             ChangeAnimation("SPRINTMAX");
             flame = true;
             speedmult = 2f;
+            accelmult = 3;
         }
         if (currentControlType == ControlType.Sprinting)
         {
-            if (MathF.Abs(rbPlayer.velocity.x) < 4)
+            if (MathF.Abs(rbPlayer.velocity.x) < 0.5f)
             {
                 flame = false;
                 currentControlType = ControlType.Platforming;
@@ -335,7 +361,7 @@ public class PlayerScript : MonoBehaviour
         // Calculates movementforce
         float targetSpeed = xInput * moveSpeedPlatforming *4 * speedmult;
         float speedDif = targetSpeed - rbPlayer.velocity.x;
-        float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? acceleration /8 : decceleration /8;
+        float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? acceleration /8 * accelmult : decceleration /8;
         float movement = Mathf.Pow(Mathf.Abs(speedDif) * accelRate, velPower) * Mathf.Sign(speedDif);
         rbPlayer.AddForce(movement * Vector2.right);
 
@@ -532,6 +558,20 @@ public class PlayerScript : MonoBehaviour
         //StartCoroutine(UnStunBackup());
     }
 
+    void CustomGravity()
+    {
+        if (!grounded)
+        {
+            if(rbPlayer.velocity.y <= 0 || !Input.GetButton("Jump"))
+            {
+                rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, rbPlayer.velocity.y - customGravity);
+            }
+            if(rbPlayer.velocity.y < -20)
+            {
+                rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, -20);
+            }
+        }
+    }
     IEnumerator UnStunBackup()
     {
         yield return new WaitForSeconds(2);
