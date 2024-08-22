@@ -101,6 +101,7 @@ MonoBehaviour:
   acceleration: 5
   decceleration: 10
   velPower: 1
+  customGravity: 0.5
   moveSpeedPlatforming: 4
   jumpSpeedPlatforming: 12
   gravityScalePlatforming: 3

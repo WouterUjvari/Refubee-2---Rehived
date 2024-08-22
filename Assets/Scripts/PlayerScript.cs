@@ -125,14 +125,7 @@ public class PlayerScript : MonoBehaviour
         }
         
 
-        if(grounded)
-        {
-            rbPlayer.gravityScale = 0;
-        }
-        else 
-        {          
-            rbPlayer.gravityScale = gravityScalePlatforming;
-        }
+        
 
         jumpCooldown = Mathf.Clamp(jumpCooldown += Time.deltaTime, 0, 1);
         bounceCooldown = Mathf.Clamp(bounceCooldown += Time.deltaTime, 0, 2);
@@ -216,7 +209,7 @@ public class PlayerScript : MonoBehaviour
         // Calculates movementforce
         float targetSpeed = xInput * moveSpeedPlatforming;
         float speedDif = targetSpeed - rbPlayer.velocity.x;
-        float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? (acceleration * 10) : (decceleration * 2);
+        float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? (acceleration * 1) : (decceleration * 1);
         float movement = Mathf.Pow(Mathf.Abs(speedDif) * accelRate, velPower) * Mathf.Sign(speedDif);
         rbPlayer.AddForce(movement * Vector2.right);
 
@@ -311,7 +304,14 @@ public class PlayerScript : MonoBehaviour
                 }
             }
         }
-        
+        if (grounded)
+        {
+            rbPlayer.gravityScale = 0;
+        }
+        else
+        {
+            rbPlayer.gravityScale = gravityScalePlatforming;
+        }
         FaceInput();
         underwatertimer = 0;
     }
@@ -333,7 +333,7 @@ public class PlayerScript : MonoBehaviour
             speedmult = 1f;
             accelmult = 1;
         }
-        else if (MathF.Abs(rbPlayer.velocity.x) < 25)
+        else if (MathF.Abs(rbPlayer.velocity.x) < 18)
         {
             ChangeAnimation("SPRINTFASTEST");
             flame = true;
@@ -350,7 +350,7 @@ public class PlayerScript : MonoBehaviour
         }
         if (currentControlType == ControlType.Sprinting)
         {
-            if (MathF.Abs(rbPlayer.velocity.x) < 0.5f)
+            if (MathF.Abs(rbPlayer.velocity.x) < 2f)
             {
                 flame = false;
                 currentControlType = ControlType.Platforming;
@@ -427,10 +427,14 @@ public class PlayerScript : MonoBehaviour
                 StartCoroutine(LedgeJump());
             }
         }
-
-
-
-        
+        if (grounded)
+        {
+            rbPlayer.gravityScale = 0;
+        }
+        else
+        {
+            rbPlayer.gravityScale = gravityScalePlatforming;
+        }
         FaceInput();
         underwatertimer = 0;
     }
@@ -478,7 +482,7 @@ public class PlayerScript : MonoBehaviour
         }
         if (Input.GetButton("Jump"))
         {
-            rbPlayer.mass = 1;
+            rbPlayer.mass = 1f;
 
         }
         else
@@ -540,8 +544,7 @@ public class PlayerScript : MonoBehaviour
     }
 
     void HandleStuns()
-    {
-        
+    {      
         if (grounded && damageCooldown > 0.2f)
         {
             stunned = false;
@@ -549,22 +552,17 @@ public class PlayerScript : MonoBehaviour
         if (stunned)
         {
             ChangeAnimation("SWIM");
-            //bodyCollider.sharedMaterial = friction;
+
         }
-        else
-        {
-            //bodyCollider.sharedMaterial = nofriction;
-        }
-        //StartCoroutine(UnStunBackup());
     }
 
     void CustomGravity()
     {
         if (!grounded)
         {
-            if(rbPlayer.velocity.y <= 0 || !Input.GetButton("Jump"))
+            if(rbPlayer.velocity.y <= 0)
             {
-                rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, rbPlayer.velocity.y - customGravity);
+                //rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, rbPlayer.velocity.y - customGravity);
             }
             if(rbPlayer.velocity.y < -20)
             {
