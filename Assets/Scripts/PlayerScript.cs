@@ -184,6 +184,15 @@ public class PlayerScript : MonoBehaviour
         {
             Physics2D.IgnoreLayerCollision(6, 17, true);
         }
+
+        if(_grounded)
+        {
+            rbPlayer.gravityScale = 0.1f;
+        }
+        else
+        {
+            rbPlayer.gravityScale = gravityScalePlatforming;
+        }
     }
     
 
@@ -242,15 +251,16 @@ public class PlayerScript : MonoBehaviour
             if (true)
             {
                 RaycastHit2D[] hit = Physics2D.RaycastAll(transform.position, Vector2.down, 0.25f);
-                if (hit.Length > 0)
+                Collider2D col = Physics2D.OverlapArea(groundCheckCollider.bounds.min, groundCheckCollider.bounds.max, ledgemask);
+                if (true)
                 {
-                    for (int i = 0; i < hit.Length; i++)
+                    if (true)
                     {
-                        if (hit[i].collider.gameObject.GetComponent<PlatformEffector2D>() != null)
+                        if (col != null)
                         {
                             
                             standsOnLedge = true;
-                            ledgeCol = hit[i].collider.gameObject.GetComponent<Collider2D>();
+                            col.gameObject.GetComponent<Collider2D>();
                         }
                         else
                         {
@@ -422,10 +432,20 @@ public class PlayerScript : MonoBehaviour
     {
         //Collider2D col = Physics2D.OverlapAreaAll(groundCheckCollider.bounds.min, groundCheckCollider.bounds.max, ledgemask);
         Collider2D col = Physics2D.OverlapArea(groundCheckCollider.bounds.min, groundCheckCollider.bounds.max, ledgemask);
-        Physics2D.IgnoreCollision(bodyCollider, col, true);
+        if(col != null)
+        {
+            Physics2D.IgnoreCollision(bodyCollider, col, true);
+        }
+        
+        rbPlayer.gravityScale = gravityScalePlatforming;
+        rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, -1);
         yield return new WaitForSeconds(0.5f);
 
-        Physics2D.IgnoreCollision(bodyCollider, col, false);
+        if (col != null)
+        {
+            Physics2D.IgnoreCollision(bodyCollider, col, false);
+        }
+
         standsOnLedge = false;
     }
     void HandleSwimmingMovement()
