@@ -102,22 +102,26 @@ public class GameManager : MonoBehaviour
     }
     public void TakeHealth(int amount)
     {
-        GameManager.Instance.playerCurrentHealthPoints = Mathf.Clamp(GameManager.Instance.playerCurrentHealthPoints += amount, 0, GameManager.Instance.playerMaxHealthPoints);
-        Instance.playerScript.currentControlType = PlayerScript.ControlType.Platforming;
-        Hud.Instance.fadeAnimator.Play("FlashRed");
-        if (playerCurrentHealthPoints ==0)
+        if (!Instance.playerScript.stunned)
         {
-            Instance.playerScript.DeathSequence();
-        }
-
-        if(hasKeybee && amount < 0)
-        {
-            if (GameManager.Instance.keybee.animator.GetCurrentAnimatorClipInfo(0)[0].clip.name != "KeybeeDetach")
+            GameManager.Instance.playerCurrentHealthPoints = Mathf.Clamp(GameManager.Instance.playerCurrentHealthPoints += amount, 0, GameManager.Instance.playerMaxHealthPoints);
+            Instance.playerScript.currentControlType = PlayerScript.ControlType.Platforming;
+            Hud.Instance.fadeAnimator.Play("FlashRed");
+            if (playerCurrentHealthPoints == 0)
             {
-                GameManager.Instance.keybee.animator.Play("KeybeeDetach");
+                Instance.playerScript.DeathSequence();
             }
-            hasKeybee = false;
-        }     
+
+            if (hasKeybee && amount < 0)
+            {
+                if (GameManager.Instance.keybee.animator.GetCurrentAnimatorClipInfo(0)[0].clip.name != "KeybeeDetach")
+                {
+                    GameManager.Instance.keybee.animator.Play("KeybeeDetach");
+                }
+                hasKeybee = false;
+            }
+        }
+            
     }
 
     public void StartControlRestriction(float duration)
@@ -133,7 +137,6 @@ public class GameManager : MonoBehaviour
         readControls = true;
         Instance.playerScript.rbPlayer.isKinematic = false;
     }
-
     public int calculateScore()
     {
         int score;

@@ -18,6 +18,7 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] private float yInput;
     public bool jumpInput;
     public bool stunned;
+    private float Restriction;
     public float bounceCooldown;
     public float damageCooldown;
     public float dealdamageCooldown;
@@ -153,12 +154,14 @@ public class PlayerScript : MonoBehaviour
         knockbackCooldown = Mathf.Clamp(knockbackCooldown += Time.deltaTime, 0, 2);
         dealdamageCooldown = Mathf.Clamp(dealdamageCooldown += Time.deltaTime, 0, 2);
         pickupcooldown = Mathf.Clamp(pickupcooldown += Time.deltaTime, 0, 1);
+        Restriction = Mathf.Clamp(Restriction -= Time.deltaTime * 2, 0, 1);
 
 
 
-        
 
-        if(Input.GetButtonDown("Fire1"))
+
+
+        if (Input.GetButtonDown("Fire1"))
         {
             if (!punching && currentControlType == ControlType.Platforming && !stunned && GameManager.Instance.readControls)
             {
@@ -169,11 +172,8 @@ public class PlayerScript : MonoBehaviour
 
         if (Input.GetKeyDown("g"))
         {
-            RaycastHit2D hit = Physics2D.Raycast(this.gameObject.transform.position, Vector2.down);
-            if (hit.collider != null)
-            {
-
-            }
+            Restriction = 1;
+            stunned = true;
         }
 
         if (flame)
@@ -219,7 +219,7 @@ public class PlayerScript : MonoBehaviour
             currentControlType = ControlType.Platforming;
         }
 
-        if (currentControlType == ControlType.Platforming && !stunned)
+        if (currentControlType == ControlType.Platforming)
         {
             HandlePlatformingMovement();
         }
@@ -237,7 +237,7 @@ public class PlayerScript : MonoBehaviour
         rbPlayer.mass = 1;
         flame = false;
         // Calculates movementforce
-        float targetSpeed = xInput * moveSpeedPlatforming;
+        float targetSpeed = (xInput * (1 - Restriction)) * moveSpeedPlatforming;
         float speedDif = targetSpeed - rbPlayer.velocity.x;
         float accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? (acceleration * 1) : (decceleration * 1);
         float movement = Mathf.Pow(Mathf.Abs(speedDif) * accelRate, velPower) * Mathf.Sign(speedDif);
@@ -546,13 +546,13 @@ public class PlayerScript : MonoBehaviour
 
     void HandleStuns()
     {      
-        if (_grounded && damageCooldown > 0.2f)
-        {
-            stunned = false;
-        }
         if (stunned)
         {
             ChangeAnimation("SWIM");
+            if(Restriction == 0)
+            {
+                stunned = false;
+            }
 
         }
     }
@@ -597,10 +597,10 @@ public class PlayerScript : MonoBehaviour
             {
                 rbPlayer.velocity = Vector2.zero;
             }
-           knockbackCooldown = 0;
-           rbPlayer.AddForce(new Vector2(amountX, amountY));
-       }
-       
+            knockbackCooldown = 0;
+            Restriction = 1;
+            rbPlayer.AddForce(new Vector2(amountX, amountY));           
+       }    
     }
 
     public void DeathSequence()
