@@ -234,7 +234,7 @@ public class PlayerScript : MonoBehaviour
         float movement = Mathf.Pow(Mathf.Abs(speedDif) * accelRate, velPower) * Mathf.Sign(speedDif);
         rbPlayer.AddForce(movement * Vector2.right);
 
-        //rbPlayer.gravityScale = gravityScalePlatforming;
+
         rbPlayer.drag = dragPlatforming;
 
         if (_grounded && !punching)
