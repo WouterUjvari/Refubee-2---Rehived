@@ -96,6 +96,10 @@ public class PlayerScript : MonoBehaviour
     }
     private void Update()
     {
+        if (stunned)
+        {
+            currentControlType = ControlType.Platforming;
+        }
         GatherInput();
         _time += Time.deltaTime;
         measureSpeedX = rbPlayer.velocity.x;
@@ -115,7 +119,7 @@ public class PlayerScript : MonoBehaviour
             }
 
             //run
-            if(!stunned && _grounded && !punching)
+            if(!stunned && _grounded && !punching && !stunned)
             {
                 if (Input.GetButton("Fire2"))
                 {
@@ -185,14 +189,7 @@ public class PlayerScript : MonoBehaviour
             Physics2D.IgnoreLayerCollision(6, 17, true);
         }
 
-        if(_grounded)
-        {
-            rbPlayer.gravityScale = 0.1f;
-        }
-        else
-        {
-            rbPlayer.gravityScale = gravityScalePlatforming;
-        }
+        
     }
     
 
@@ -222,10 +219,26 @@ public class PlayerScript : MonoBehaviour
         if (currentControlType == ControlType.Platforming)
         {
             HandlePlatformingMovement();
+            if (_grounded)
+            {
+                rbPlayer.gravityScale = 0.1f;
+            }
+            else
+            {
+                rbPlayer.gravityScale = gravityScalePlatforming;
+            }
         }
         else if (currentControlType == ControlType.Sprinting && !stunned)
         {
             HandleSprintingMovement();
+            if (_grounded)
+            {
+                rbPlayer.gravityScale = 0.1f;
+            }
+            else
+            {
+                rbPlayer.gravityScale = gravityScalePlatforming;
+            }
         }
         else if (currentControlType == ControlType.Swimming)
         {
@@ -313,14 +326,6 @@ public class PlayerScript : MonoBehaviour
                 }
             }
         }
-        if (_grounded)
-        {
-            //rbPlayer.gravityScale = 0;
-        }
-        else
-        {
-            //rbPlayer.gravityScale = gravityScalePlatforming;
-        }
         FaceInput();
         HandleGravity();
         underwatertimer = 0;
@@ -367,6 +372,11 @@ public class PlayerScript : MonoBehaviour
 
             }
         }
+        if (stunned)
+        {
+            currentControlType = ControlType.Platforming;
+        }
+
 
         // Calculates movementforce
         float targetSpeed = xInput * moveSpeedPlatforming *4 * speedmult;
@@ -598,7 +608,10 @@ public class PlayerScript : MonoBehaviour
                 rbPlayer.velocity = Vector2.zero;
             }
             knockbackCooldown = 0;
+            jumpCooldown = 0;
             Restriction = 1;
+            rbPlayer.gravityScale = gravityScalePlatforming;
+            rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, 0);
             rbPlayer.AddForce(new Vector2(amountX, amountY));           
        }    
     }
@@ -650,7 +663,7 @@ public class PlayerScript : MonoBehaviour
             Move = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"))
         };
 
-        if (_frameInput.JumpDown)
+        if (_frameInput.JumpDown && !stunned && jumpCooldown > 0.25f)
         {
             _jumpToConsume = true;
             _timeJumpWasPressed = _time;
@@ -710,14 +723,20 @@ public class PlayerScript : MonoBehaviour
     }
     private void ExecuteJump()
     {
-        Debug.Log("JUMP NOW!");
-        _endedJumpEarly = false;
-        _timeJumpWasPressed = 0;
-        _bufferedJumpUsable = false;
-        _coyoteUsable = false;
-        rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, 0);
-        rbPlayer.AddForce(new Vector2(0, 600));
-        Jumped?.Invoke();
+        if(!stunned)
+        {
+            jumpCooldown = 0;
+            Debug.Log("JUMP NOW!");
+            _endedJumpEarly = false;
+            _timeJumpWasPressed = 0;
+            _bufferedJumpUsable = false;
+            _coyoteUsable = false;
+            rbPlayer.gravityScale = gravityScalePlatforming;
+            rbPlayer.velocity = new Vector2(rbPlayer.velocity.x, 0);
+            rbPlayer.AddForce(new Vector2(0, 600));
+            Jumped?.Invoke();
+        }
+        
     }
     private void HandleGravity()
     {
