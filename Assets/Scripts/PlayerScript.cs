@@ -67,6 +67,8 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] private LayerMask ledgemask;
     [SerializeField] private LayerMask watermask;
     [SerializeField] private LayerMask playerlayer;
+    [SerializeField] private SpriteRenderer sprite;
+
 
     public enum ControlType { Platforming, Swimming, Sprinting};
     public ControlType currentControlType;
@@ -362,6 +364,10 @@ public class PlayerScript : MonoBehaviour
             flame = true;
             speedmult = 2f;
             accelmult = 3;
+            if(rbPlayer.velocity.x > 20)
+            {
+                rbPlayer.velocity = new Vector2(20, rbPlayer.velocity.y);
+            }
         }
         if (currentControlType == ControlType.Sprinting)
         {
@@ -588,6 +594,14 @@ public class PlayerScript : MonoBehaviour
         if (xInput < -0.1f)
         {
             transform.localScale = new Vector3(-1, 1, 1);
+        }
+        if (stunned)
+        {
+            sprite.color = Color.red;
+        }
+        else
+        {
+            sprite.color = Color.white;
         }
     }
     

@@ -391,7 +391,7 @@ ScriptedImporter:
     uvTransform: {x: 64, y: 4}
   - name: BeeSheet_Frame_8
     originalName: 
-    pivot: {x: 0.45833334, y: 0.125}
+    pivot: {x: 0.45833334, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -411,7 +411,7 @@ ScriptedImporter:
     uvTransform: {x: 89, y: 4}
   - name: BeeSheet_Frame_9
     originalName: 
-    pivot: {x: 0.47826087, y: 0.125}
+    pivot: {x: 0.47826087, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
@@ -800,7 +800,7 @@ ScriptedImporter:
       y: 128
       width: 21
       height: 23
-    spriteID: 6187ed54886b5b5489a3fd54984f046e
+    spriteID: cbee05a646cd15042b5329f3f8fb5bc8
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -820,7 +820,7 @@ ScriptedImporter:
       y: 159
       width: 21
       height: 23
-    spriteID: 35cd5b2e48794604497d5483cbc6c1ea
+    spriteID: b90b545d5f68d964e8e5ec3d90beb7fe
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -1069,7 +1069,7 @@ ScriptedImporter:
         y: 0
         width: 21
         height: 23
-      spriteId: 6187ed54886b5b5489a3fd54984f046e
+      spriteId: cbee05a646cd15042b5329f3f8fb5bc8
     - name: BeeSheet_Frame_29
       frameIndex: 29
       cellRect:
@@ -1077,7 +1077,7 @@ ScriptedImporter:
         y: 0
         width: 21
         height: 23
-      spriteId: 35cd5b2e48794604497d5483cbc6c1ea
+      spriteId: b90b545d5f68d964e8e5ec3d90beb7fe
     linkedCells: []
     parentIndex: -1
   platformSettings:
